@@ -720,6 +720,19 @@ function buildTable(seriesKey, data) {
 }
 
 var saving = false;
+var LOCAL_KEY = 'atharvBooks';
+
+function getLocalData() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_KEY)) || {};
+  } catch(e) { return {}; }
+}
+
+function saveLocal(idx, entry) {
+  var all = getLocalData();
+  all[idx] = entry;
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
+}
 
 function saveBook(idx) {
   if (!familyPin) return;
@@ -728,11 +741,9 @@ function saveBook(idx) {
   var rating = 0;
   var checked = document.querySelector('input[name="star-' + idx + '"]:checked');
   if (checked) rating = parseInt(checked.value);
-  db.ref('family/' + familyPin + '/books/' + idx).set({
-    done: cb.checked,
-    date: dateInput.value || '',
-    rating: rating
-  });
+  var entry = { done: cb.checked, date: dateInput.value || '', rating: rating };
+  db.ref('family/' + familyPin + '/books/' + idx).set(entry);
+  saveLocal(idx, entry);
 }
 
 function onCheck(idx) {
@@ -794,31 +805,76 @@ document.querySelectorAll('.star-rating input[type="radio"]').forEach(function(r
   });
 });
 
+function applyData(data) {
+  if (!data) return;
+  Object.keys(data).forEach(function(idx) {
+    var entry = data[idx];
+    var cb = document.getElementById('cb-' + idx);
+    var dateInput = document.getElementById('date-' + idx);
+    var row = document.getElementById('row-' + idx);
+    if (!cb) return;
+    if (entry.done) {
+      cb.checked = true;
+      row.classList.add('done');
+    }
+    if (entry.date) {
+      dateInput.value = entry.date;
+    }
+    if (entry.rating) {
+      var radio = document.getElementById('star-' + idx + '-' + entry.rating);
+      if (radio) radio.checked = true;
+    }
+    saveLocal(idx, entry);
+  });
+}
+
+function mergeData(primary, fallback) {
+  var merged = {};
+  if (fallback) Object.keys(fallback).forEach(function(k) { merged[k] = fallback[k]; });
+  if (primary) Object.keys(primary).forEach(function(k) { merged[k] = primary[k]; });
+  return merged;
+}
+
 function loadData() {
   if (!familyPin) return;
+  var localData = getLocalData();
+
+  // Load from new PIN path
   db.ref('family/' + familyPin + '/books').once('value').then(function(snapshot) {
     saving = true;
-    var data = snapshot.val();
-    if (data) {
-      Object.keys(data).forEach(function(idx) {
-        var entry = data[idx];
-        var cb = document.getElementById('cb-' + idx);
-        var dateInput = document.getElementById('date-' + idx);
-        var row = document.getElementById('row-' + idx);
-        if (!cb) return;
-        if (entry.done) {
-          cb.checked = true;
-          row.classList.add('done');
+    var firebaseData = snapshot.val();
+
+    // One-time migration: check old /books/ path
+    var migrated = localStorage.getItem('atharvMigrated');
+    if (!migrated) {
+      db.ref('books').once('value').then(function(oldSnapshot) {
+        var oldData = oldSnapshot.val();
+        if (oldData) {
+          // Merge: old data as fallback, new Firebase data wins conflicts
+          var combined = mergeData(firebaseData, oldData);
+          // Save migrated data to new path
+          db.ref('family/' + familyPin + '/books').set(combined);
+          applyData(combined);
+        } else {
+          // No old data, merge Firebase with localStorage
+          var combined = mergeData(firebaseData, localData);
+          applyData(combined);
         }
-        if (entry.date) {
-          dateInput.value = entry.date;
-        }
-        if (entry.rating) {
-          var radio = document.getElementById('star-' + idx + '-' + entry.rating);
-          if (radio) radio.checked = true;
-        }
+        localStorage.setItem('atharvMigrated', 'true');
+        saving = false;
+        recountBooks();
       });
+    } else {
+      // Already migrated: merge Firebase with localStorage backup
+      var combined = mergeData(firebaseData, localData);
+      applyData(combined);
+      saving = false;
+      recountBooks();
     }
+  }).catch(function() {
+    // Firebase failed — load from localStorage backup
+    saving = true;
+    applyData(localData);
     saving = false;
     recountBooks();
   });
