@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atharv's Reading Adventure Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFD93D;
+    --orange: #FF6B35;
+    --pink: #FF6B9D;
+    --green: #06D6A0;
+    --blue: #4CC9F0;
+    --purple: #7B5EA7;
+    --red: #EF233C;
+    --teal: #0CB0A9;
+    --bg: #FFF8F0;
+    --text: #1A1A2E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+    position: relative;
+  }
+  .header-badge {
+    display: inline-block;
+    background: var(--yellow);
+    border: 4px solid var(--text);
+    border-radius: 50px;
+    padding: 6px 22px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    box-shadow: 3px 3px 0 var(--text);
+  }
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 48px;
+    line-height: 1.1;
+    color: var(--text);
+    text-shadow: 4px 4px 0 var(--yellow);
+  }
+  .subtitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: #666;
+    margin-top: 8px;
+  }
+  .stars-total {
+    margin-top: 14px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: var(--orange);
+  }
+  .progress-bar-wrap {
+    margin: 14px auto 0;
+    max-width: 480px;
+    background: #e0e0e0;
+    border: 3px solid var(--text);
+    border-radius: 20px;
+    height: 22px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--blue));
+    border-radius: 20px;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+  .progress-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    margin-top: 5px;
+  }
+
+  /* SERIES SECTIONS */
+  .series-block {
+    margin-bottom: 36px;
+    border: 4px solid var(--text);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 6px 6px 0 var(--text);
+  }
+  .series-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 3px solid var(--text);
+  }
+  .series-emoji { font-size: 32px; }
+  .series-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    flex: 1;
+  }
+  .series-count {
+    background: rgba(0,0,0,0.12);
+    border-radius: 30px;
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(0,0,0,0.06);
+    border-bottom: 2px solid var(--text);
+    text-align: left;
+  }
+  thead th:last-child { text-align: center; }
+  thead th.center { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    transition: background 0.2s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.5); }
+  tbody tr.done { background: rgba(6,214,160,0.12) !important; }
+  tbody tr.done td { opacity: 0.75; }
+
+  td {
+    padding: 11px 12px;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  td.num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: #bbb;
+    width: 36px;
+    text-align: center;
+  }
+  td.title-cell {
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 180px;
+  }
+  td.title-cell .subtitle-small {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    margin-top: 2px;
+  }
+  td.pages {
+    font-weight: 800;
+    text-align: center;
+    width: 70px;
+    font-size: 14px;
+  }
+  td.date-cell {
+    width: 130px;
+  }
+  td.date-cell input[type="date"] {
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    width: 120px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  td.date-cell input[type="date"]:focus {
+    outline: none;
+    border-color: var(--orange);
+  }
+
+  /* RATING STARS */
+  td.rating-cell { width: 110px; }
+  .star-rating { display: flex; gap: 2px; }
+  .star-rating input[type="radio"] { display: none; }
+  .star-rating label {
+    font-size: 18px;
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.1s;
+    line-height: 1;
+  }
+  .star-rating input[type="radio"]:checked ~ label,
+  .star-rating label:hover,
+  .star-rating label:hover ~ label { color: #ddd; }
+  /* Reverse star trick */
+  .star-rating { flex-direction: row-reverse; justify-content: flex-end; }
+  .star-rating label:hover,
+  .star-rating label:hover ~ label,
+  .star-rating input[type="radio"]:checked ~ label { color: var(--yellow); }
+
+  /* CHECK CELL */
+  td.check-cell {
+    text-align: center;
+    width: 60px;
+  }
+  .book-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    position: relative;
+    transition: background 0.2s, transform 0.15s;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .book-checkbox:checked {
+    background: var(--green);
+    transform: scale(1.1);
+  }
+  .book-checkbox:checked::after {
+    content: '\2713';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .book-checkbox:hover { border-color: var(--orange); }
+
+  /* COLORS PER SERIES */
+  .s1 .series-header { background: #FFF0CC; }
+  .s2 .series-header { background: #FFE0EE; }
+  .s3 .series-header { background: #D8F5E8; }
+  .s4 .series-header { background: #DCF0FF; }
+  .s5 .series-header { background: #EDE0FF; }
+
+  /* BACK LINK */
+  .back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    color: var(--orange);
+    text-decoration: none;
+    border: 3px solid var(--text);
+    border-radius: 12px;
+    padding: 8px 18px;
+    background: white;
+    box-shadow: 3px 3px 0 var(--text);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .back-link:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--text);
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    margin-top: 36px;
+    padding: 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    color: #aaa;
+  }
+  .trophy { font-size: 32px; display: block; margin-bottom: 6px; }
+
+  /* PRINT */
+  @media print {
+    body { background: white; padding: 10px; }
+    .series-block { box-shadow: none; break-inside: avoid; }
+    .book-checkbox:checked { background: #06D6A0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .series-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .progress-bar-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .back-link { display: none; }
+  }
+
+  .print-btn {
+    display: block;
+    margin: 0 auto 28px;
+    background: var(--orange);
+    color: white;
+    border: 3px solid var(--text);
+    border-radius: 14px;
+    padding: 12px 32px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--text);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .print-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--text); }
+  .print-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--text); }
+  @media print { .print-btn { display: none; } }
+</style>
+</head>
+<body>
+
+<a href="/" class="back-link">&larr; Back to Home</a>
+
+<div class="header">
+  <div class="header-badge">Reading Adventure</div>
+  <h1>Atharv's Book Quest</h1>
+  <p class="subtitle">Check off every book you finish — become a Reading Champion!</p>
+  <div class="stars-total" id="stars-display">0 books completed</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+  <p class="progress-label" id="progress-label">0 of 55 books read</p>
+</div>
+
+<button class="print-btn" onclick="window.print()">Print This Checklist</button>
+
+<!-- SERIES 1: Diary of a Wimpy Kid -->
+<div class="series-block s1">
+  <div class="series-header">
+    <span class="series-emoji">😅</span>
+    <span class="series-title">Diary of a Wimpy Kid</span>
+    <span class="series-count">17 Books</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Done</th>
+      </tr>
+    </thead>
+    <tbody id="s1-body">
+    </tbody>
+  </table>
+</div>
+
+<!-- SERIES 2: Magic Tree House -->
+<div class="series-block s2">
+  <div class="series-header">
+    <span class="series-emoji">🌳</span>
+    <span class="series-title">Magic Tree House</span>
+    <span class="series-count">14 Books (Original)</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Done</th>
+      </tr>
+    </thead>
+    <tbody id="s2-body">
+    </tbody>
+  </table>
+</div>
+
+<!-- SERIES 3: Captain Underpants -->
+<div class="series-block s3">
+  <div class="series-header">
+    <span class="series-emoji">🩲</span>
+    <span class="series-title">Captain Underpants</span>
+    <span class="series-count">12 Books</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Done</th>
+      </tr>
+    </thead>
+    <tbody id="s3-body">
+    </tbody>
+  </table>
+</div>
+
+<!-- SERIES 4: Big Nate -->
+<div class="series-block s4">
+  <div class="series-header">
+    <span class="series-emoji">😎</span>
+    <span class="series-title">Big Nate</span>
+    <span class="series-count">8 Books</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Done</th>
+      </tr>
+    </thead>
+    <tbody id="s4-body">
+    </tbody>
+  </table>
+</div>
+
+<!-- SERIES 5: Boxcar Children -->
+<div class="series-block s5">
+  <div class="series-header">
+    <span class="series-emoji">🚂</span>
+    <span class="series-title">The Boxcar Children</span>
+    <span class="series-count">19 Books (Original Series)</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Done</th>
+      </tr>
+    </thead>
+    <tbody id="s5-body">
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">
+  <span class="trophy">🏆</span>
+  Keep reading, Atharv — every book makes you smarter &amp; stronger!
+</div>
+
+<script>
+const series = {
+  s1: [
+    { title: "Diary of a Wimpy Kid", note: "Book 1", pages: 217 },
+    { title: "Rodrick Rules", note: "Book 2", pages: 217 },
+    { title: "The Last Straw", note: "Book 3", pages: 217 },
+    { title: "Dog Days", note: "Book 4", pages: 217 },
+    { title: "The Ugly Truth", note: "Book 5", pages: 217 },
+    { title: "Cabin Fever", note: "Book 6", pages: 224 },
+    { title: "The Third Wheel", note: "Book 7", pages: 224 },
+    { title: "Hard Luck", note: "Book 8", pages: 224 },
+    { title: "The Long Haul", note: "Book 9", pages: 224 },
+    { title: "Old School", note: "Book 10", pages: 224 },
+    { title: "Double Down", note: "Book 11", pages: 224 },
+    { title: "The Getaway", note: "Book 12", pages: 224 },
+    { title: "The Meltdown", note: "Book 13", pages: 224 },
+    { title: "Wrecking Ball", note: "Book 14", pages: 224 },
+    { title: "The Deep End", note: "Book 15", pages: 224 },
+    { title: "Big Shot", note: "Book 16", pages: 224 },
+    { title: "Diper Överlöde", note: "Book 17", pages: 224 },
+  ],
+  s2: [
+    { title: "Dinosaurs Before Dark", note: "Book 1", pages: 96 },
+    { title: "The Knight at Dawn", note: "Book 2", pages: 96 },
+    { title: "Mummies in the Morning", note: "Book 3", pages: 96 },
+    { title: "Pirates Past Noon", note: "Book 4", pages: 96 },
+    { title: "Night of the Ninjas", note: "Book 5", pages: 96 },
+    { title: "Afternoon on the Amazon", note: "Book 6", pages: 96 },
+    { title: "Sunset of the Sabertooth", note: "Book 7", pages: 96 },
+    { title: "Midnight on the Moon", note: "Book 8", pages: 96 },
+    { title: "Dolphins at Daybreak", note: "Book 9", pages: 96 },
+    { title: "Ghost Town at Sundown", note: "Book 10", pages: 96 },
+    { title: "Lions at Lunchtime", note: "Book 11", pages: 96 },
+    { title: "Polar Bears Past Bedtime", note: "Book 12", pages: 96 },
+    { title: "Vacation Under the Volcano", note: "Book 13", pages: 96 },
+    { title: "Day of the Dragon King", note: "Book 14", pages: 96 },
+  ],
+  s3: [
+    { title: "The Attack of the Talking Toilets", note: "Book 1", pages: 176 },
+    { title: "The Invasion of the Incredibly Naughty Cafeteria Ladies from Outer Space", note: "Book 2", pages: 176 },
+    { title: "The Perilous Plot of Professor Poopypants", note: "Book 3", pages: 176 },
+    { title: "The Big, Bad Battle of the Bionic Booger Boy Pt 1", note: "Book 4", pages: 176 },
+    { title: "The Big, Bad Battle of the Bionic Booger Boy Pt 2", note: "Book 5", pages: 176 },
+    { title: "The Wrath of the Wicked Wedgie Woman", note: "Book 6", pages: 176 },
+    { title: "The Tyrannical Retaliation of the Turbo Toilet 2000", note: "Book 7", pages: 176 },
+    { title: "The Preposterous Plight of the Purple Potty People", note: "Book 8", pages: 176 },
+    { title: "The Terrifying Re-Turn of Tippy Tinkletrousers", note: "Book 9", pages: 240 },
+    { title: "The Revolting Revenge of the Real George Washington", note: "Book 10", pages: 240 },
+    { title: "The Invasion of the Super Nerdy Cafeteria Ladies", note: "Book 11", pages: 240 },
+    { title: "The Sensational Saga of Sir Stinks-A-Lot", note: "Book 12", pages: 240 },
+  ],
+  s4: [
+    { title: "Big Nate: In a Class by Himself", note: "Book 1", pages: 224 },
+    { title: "Big Nate Strikes Again", note: "Book 2", pages: 224 },
+    { title: "Big Nate On a Roll", note: "Book 3", pages: 224 },
+    { title: "Big Nate Goes for Broke", note: "Book 4", pages: 224 },
+    { title: "Big Nate Flips Out", note: "Book 5", pages: 224 },
+    { title: "Big Nate in the Zone", note: "Book 6", pages: 224 },
+    { title: "Big Nate Lives It Up", note: "Book 7", pages: 224 },
+    { title: "Big Nate Blasts Off", note: "Book 8", pages: 224 },
+  ],
+  s5: [
+    { title: "The Boxcar Children", note: "Book 1", pages: 176 },
+    { title: "Surprise Island", note: "Book 2", pages: 160 },
+    { title: "The Yellow House Mystery", note: "Book 3", pages: 160 },
+    { title: "Mystery Ranch", note: "Book 4", pages: 160 },
+    { title: "Mike's Mystery", note: "Book 5", pages: 160 },
+    { title: "Blue Bay Mystery", note: "Book 6", pages: 160 },
+    { title: "The Woodshed Mystery", note: "Book 7", pages: 160 },
+    { title: "The Lighthouse Mystery", note: "Book 8", pages: 160 },
+    { title: "Mountain Top Mystery", note: "Book 9", pages: 160 },
+    { title: "Schoolhouse Mystery", note: "Book 10", pages: 160 },
+    { title: "Caboose Mystery", note: "Book 11", pages: 160 },
+    { title: "Houseboat Mystery", note: "Book 12", pages: 160 },
+    { title: "Snowbound Mystery", note: "Book 13", pages: 160 },
+    { title: "Tree House Mystery", note: "Book 14", pages: 160 },
+    { title: "Bicycle Mystery", note: "Book 15", pages: 160 },
+    { title: "Mystery in the Sand", note: "Book 16", pages: 160 },
+    { title: "Mystery Behind the Wall", note: "Book 17", pages: 160 },
+    { title: "Bus Station Mystery", note: "Book 18", pages: 160 },
+    { title: "Benny Uncovers a Mystery", note: "Book 19", pages: 160 },
+  ],
+};
+
+let totalBooks = 0;
+let completedBooks = 0;
+
+function makeStars(id) {
+  const radios = [5,4,3,2,1].map(n =>
+    '<input type="radio" name="star-' + id + '" id="star-' + id + '-' + n + '" value="' + n + '">' +
+    '<label for="star-' + id + '-' + n + '" title="' + n + ' stars">★</label>'
+  ).join('');
+  return '<div class="star-rating">' + radios + '</div>';
+}
+
+function buildTable(seriesKey, data) {
+  var tbody = document.getElementById(seriesKey + '-body');
+  data.forEach(function(book, i) {
+    var idx = seriesKey + '-' + i;
+    totalBooks++;
+    var tr = document.createElement('tr');
+    tr.id = 'row-' + idx;
+    tr.innerHTML =
+      '<td class="num">' + (i + 1) + '</td>' +
+      '<td class="title-cell">' + book.title + '<div class="subtitle-small">' + book.note + '</div></td>' +
+      '<td class="pages">' + book.pages + '</td>' +
+      '<td class="date-cell"><input type="date" id="date-' + idx + '" onchange="onDateChange(\'' + idx + '\')"></td>' +
+      '<td class="rating-cell">' + makeStars(idx) + '</td>' +
+      '<td class="check-cell"><input type="checkbox" class="book-checkbox" id="cb-' + idx + '" onchange="onCheck(\'' + idx + '\')"></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function onCheck(idx) {
+  var cb = document.getElementById('cb-' + idx);
+  var row = document.getElementById('row-' + idx);
+  if (cb.checked) {
+    row.classList.add('done');
+    completedBooks++;
+    var dateInput = document.getElementById('date-' + idx);
+    if (!dateInput.value) {
+      var today = new Date().toISOString().split('T')[0];
+      dateInput.value = today;
+    }
+  } else {
+    row.classList.remove('done');
+    completedBooks = Math.max(0, completedBooks - 1);
+  }
+  updateProgress();
+}
+
+function onDateChange(idx) {
+  var cb = document.getElementById('cb-' + idx);
+  var dateInput = document.getElementById('date-' + idx);
+  if (dateInput.value && !cb.checked) {
+    cb.checked = true;
+    onCheck(idx);
+  }
+}
+
+function updateProgress() {
+  var pct = totalBooks > 0 ? Math.round((completedBooks / totalBooks) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = completedBooks + ' of ' + totalBooks + ' books read';
+  var label = completedBooks === 0 ? 'Start reading!' : completedBooks < 10 ? 'Great start!' : completedBooks < 25 ? 'On a roll!' : completedBooks < 45 ? 'Amazing progress!' : 'Reading Champion!';
+  document.getElementById('stars-display').textContent = completedBooks + ' book' + (completedBooks !== 1 ? 's' : '') + ' completed — ' + label;
+}
+
+buildTable('s1', series.s1);
+buildTable('s2', series.s2);
+buildTable('s3', series.s3);
+buildTable('s4', series.s4);
+buildTable('s5', series.s5);
+updateProgress();
+</script>
+</body>
+</html>

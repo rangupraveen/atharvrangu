@@ -1,0 +1,23 @@
+:root {
+  --yellow: #FFD93D;
+  --orange: #FF6B35;
+  --pink: #FF6B9D;
+  --green: #06D6A0;
+  --blue: #4CC9F0;
+  --purple: #7B5EA7;
+  --red: #EF233C;
+  --teal: #0CB0A9;
+  --bg: #FFF8F0;
+  --text: #1A1A2E;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+a { text-decoration: none; color: inherit; }
