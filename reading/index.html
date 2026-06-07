@@ -321,6 +321,21 @@
 </head>
 <body>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyAza_M3-VZXpuIByVfaPoJdpQJaV2xRg_8",
+    authDomain: "atharvrangu-readinglog.firebaseapp.com",
+    databaseURL: "https://atharvrangu-readinglog-default-rtdb.firebaseio.com",
+    projectId: "atharvrangu-readinglog",
+    storageBucket: "atharvrangu-readinglog.firebasestorage.app",
+    messagingSenderId: "83598758453",
+    appId: "1:83598758453:web:ac39947c407e3788eb177c"
+  });
+  var db = firebase.database();
+</script>
+
 <a href="/" class="back-link">&larr; Back to Home</a>
 
 <div class="header">
@@ -569,22 +584,35 @@ function buildTable(seriesKey, data) {
   });
 }
 
+var saving = false;
+
+function saveBook(idx) {
+  var cb = document.getElementById('cb-' + idx);
+  var dateInput = document.getElementById('date-' + idx);
+  var rating = 0;
+  var checked = document.querySelector('input[name="star-' + idx + '"]:checked');
+  if (checked) rating = parseInt(checked.value);
+  db.ref('books/' + idx).set({
+    done: cb.checked,
+    date: dateInput.value || '',
+    rating: rating
+  });
+}
+
 function onCheck(idx) {
   var cb = document.getElementById('cb-' + idx);
   var row = document.getElementById('row-' + idx);
   if (cb.checked) {
     row.classList.add('done');
-    completedBooks++;
     var dateInput = document.getElementById('date-' + idx);
     if (!dateInput.value) {
-      var today = new Date().toISOString().split('T')[0];
-      dateInput.value = today;
+      dateInput.value = new Date().toISOString().split('T')[0];
     }
   } else {
     row.classList.remove('done');
-    completedBooks = Math.max(0, completedBooks - 1);
   }
-  updateProgress();
+  recountBooks();
+  if (!saving) saveBook(idx);
 }
 
 function onDateChange(idx) {
@@ -593,7 +621,18 @@ function onDateChange(idx) {
   if (dateInput.value && !cb.checked) {
     cb.checked = true;
     onCheck(idx);
+    return;
   }
+  if (!saving) saveBook(idx);
+}
+
+function onRating(idx) {
+  if (!saving) saveBook(idx);
+}
+
+function recountBooks() {
+  completedBooks = document.querySelectorAll('.book-checkbox:checked').length;
+  updateProgress();
 }
 
 function updateProgress() {
@@ -609,6 +648,43 @@ buildTable('s2', series.s2);
 buildTable('s3', series.s3);
 buildTable('s4', series.s4);
 buildTable('s5', series.s5);
+
+// Attach rating change listeners
+document.querySelectorAll('.star-rating input[type="radio"]').forEach(function(radio) {
+  radio.addEventListener('change', function() {
+    var idx = this.name.replace('star-', '');
+    onRating(idx);
+  });
+});
+
+// Load saved data from Firebase
+db.ref('books').once('value').then(function(snapshot) {
+  saving = true;
+  var data = snapshot.val();
+  if (data) {
+    Object.keys(data).forEach(function(idx) {
+      var entry = data[idx];
+      var cb = document.getElementById('cb-' + idx);
+      var dateInput = document.getElementById('date-' + idx);
+      var row = document.getElementById('row-' + idx);
+      if (!cb) return;
+      if (entry.done) {
+        cb.checked = true;
+        row.classList.add('done');
+      }
+      if (entry.date) {
+        dateInput.value = entry.date;
+      }
+      if (entry.rating) {
+        var radio = document.getElementById('star-' + idx + '-' + entry.rating);
+        if (radio) radio.checked = true;
+      }
+    });
+  }
+  saving = false;
+  recountBooks();
+});
+
 updateProgress();
 </script>
 </body>
