@@ -279,6 +279,71 @@
     box-shadow: 5px 5px 0 var(--text);
   }
 
+  /* PIN OVERLAY */
+  .pin-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pin-box {
+    text-align: center;
+    border: 4px solid var(--text);
+    border-radius: 20px;
+    padding: 40px 36px;
+    background: white;
+    box-shadow: 6px 6px 0 var(--text);
+    max-width: 340px;
+    width: 90%;
+  }
+  .pin-box h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .pin-box p {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  .pin-input {
+    width: 160px;
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    letter-spacing: 8px;
+    padding: 10px;
+    border: 3px solid var(--text);
+    border-radius: 12px;
+    outline: none;
+  }
+  .pin-input:focus { border-color: var(--orange); }
+  .pin-error {
+    color: var(--red);
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 20px;
+  }
+  .pin-submit {
+    display: block;
+    margin: 16px auto 0;
+    background: var(--orange);
+    color: white;
+    border: 3px solid var(--text);
+    border-radius: 12px;
+    padding: 10px 28px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--text);
+  }
+  .pin-submit:hover { background: var(--red); }
+
   /* FOOTER */
   .footer {
     text-align: center;
@@ -321,6 +386,16 @@
 </head>
 <body>
 
+<div class="pin-overlay" id="pin-overlay">
+  <div class="pin-box">
+    <h2>Enter Family PIN</h2>
+    <p>Type the 4-digit code to access the reading checklist.</p>
+    <input type="password" class="pin-input" id="pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+    <div class="pin-error" id="pin-error"></div>
+    <button class="pin-submit" id="pin-submit" onclick="checkPin()">Go!</button>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
@@ -334,6 +409,32 @@
     appId: "1:83598758453:web:ac39947c407e3788eb177c"
   });
   var db = firebase.database();
+  var familyPin = '';
+
+  function checkPin() {
+    var input = document.getElementById('pin-input').value;
+    if (input.length !== 4) {
+      document.getElementById('pin-error').textContent = 'Enter a 4-digit PIN';
+      return;
+    }
+    familyPin = input;
+    localStorage.setItem('atharvPin', familyPin);
+    document.getElementById('pin-overlay').style.display = 'none';
+    loadData();
+  }
+
+  (function() {
+    var saved = localStorage.getItem('atharvPin');
+    if (saved && saved.length === 4) {
+      familyPin = saved;
+      document.getElementById('pin-overlay').style.display = 'none';
+    } else {
+      document.getElementById('pin-input').focus();
+    }
+    document.getElementById('pin-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') checkPin();
+    });
+  })();
 </script>
 
 <a href="/" class="back-link">&larr; Back to Home</a>
@@ -587,12 +688,13 @@ function buildTable(seriesKey, data) {
 var saving = false;
 
 function saveBook(idx) {
+  if (!familyPin) return;
   var cb = document.getElementById('cb-' + idx);
   var dateInput = document.getElementById('date-' + idx);
   var rating = 0;
   var checked = document.querySelector('input[name="star-' + idx + '"]:checked');
   if (checked) rating = parseInt(checked.value);
-  db.ref('books/' + idx).set({
+  db.ref('family/' + familyPin + '/books/' + idx).set({
     done: cb.checked,
     date: dateInput.value || '',
     rating: rating
@@ -657,34 +759,37 @@ document.querySelectorAll('.star-rating input[type="radio"]').forEach(function(r
   });
 });
 
-// Load saved data from Firebase
-db.ref('books').once('value').then(function(snapshot) {
-  saving = true;
-  var data = snapshot.val();
-  if (data) {
-    Object.keys(data).forEach(function(idx) {
-      var entry = data[idx];
-      var cb = document.getElementById('cb-' + idx);
-      var dateInput = document.getElementById('date-' + idx);
-      var row = document.getElementById('row-' + idx);
-      if (!cb) return;
-      if (entry.done) {
-        cb.checked = true;
-        row.classList.add('done');
-      }
-      if (entry.date) {
-        dateInput.value = entry.date;
-      }
-      if (entry.rating) {
-        var radio = document.getElementById('star-' + idx + '-' + entry.rating);
-        if (radio) radio.checked = true;
-      }
-    });
-  }
-  saving = false;
-  recountBooks();
-});
+function loadData() {
+  if (!familyPin) return;
+  db.ref('family/' + familyPin + '/books').once('value').then(function(snapshot) {
+    saving = true;
+    var data = snapshot.val();
+    if (data) {
+      Object.keys(data).forEach(function(idx) {
+        var entry = data[idx];
+        var cb = document.getElementById('cb-' + idx);
+        var dateInput = document.getElementById('date-' + idx);
+        var row = document.getElementById('row-' + idx);
+        if (!cb) return;
+        if (entry.done) {
+          cb.checked = true;
+          row.classList.add('done');
+        }
+        if (entry.date) {
+          dateInput.value = entry.date;
+        }
+        if (entry.rating) {
+          var radio = document.getElementById('star-' + idx + '-' + entry.rating);
+          if (radio) radio.checked = true;
+        }
+      });
+    }
+    saving = false;
+    recountBooks();
+  });
+}
 
+if (familyPin) loadData();
 updateProgress();
 </script>
 </body>
