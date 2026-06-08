@@ -345,6 +345,40 @@
   }
   .pin-submit:hover { background: var(--red); }
 
+  /* EDIT MODE BUTTON */
+  .edit-btn {
+    display: inline-block;
+    margin: 10px auto 0;
+    background: white;
+    color: var(--text);
+    border: 3px solid var(--text);
+    border-radius: 12px;
+    padding: 8px 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--text);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .edit-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--text);
+  }
+  .edit-btn.active {
+    background: var(--green);
+    color: white;
+  }
+
+  /* READ-ONLY MODE */
+  body.readonly .book-checkbox,
+  body.readonly .star-rating label,
+  body.readonly input[type="date"] {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  body.readonly .book-checkbox { cursor: default; }
+  body.readonly .star-rating label { cursor: default; }
+
   /* FOOTER */
   .footer {
     text-align: center;
@@ -387,10 +421,10 @@
 </head>
 <body>
 
-<div class="pin-overlay" id="pin-overlay">
+<div class="pin-overlay" id="pin-overlay" style="display:none;">
   <div class="pin-box">
     <h2>Enter Family PIN</h2>
-    <p>Type the 4-digit code to access the reading checklist.</p>
+    <p>Type the 4-digit code to edit the checklist.</p>
     <input type="password" class="pin-input" id="pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
     <div class="pin-error" id="pin-error"></div>
     <button class="pin-submit" id="pin-submit" onclick="checkPin()">Go!</button>
@@ -411,6 +445,7 @@
   });
   var db = firebase.database();
   var familyPin = '';
+  var editMode = false;
 
   function checkPin() {
     var input = document.getElementById('pin-input').value;
@@ -418,20 +453,51 @@
       document.getElementById('pin-error').textContent = 'Enter a 4-digit PIN';
       return;
     }
-    familyPin = input;
-    localStorage.setItem('atharvPin', familyPin);
-    document.getElementById('pin-overlay').style.display = 'none';
-    loadData();
+    // Verify PIN by trying to write a test value
+    db.ref('family/' + input + '/books').once('value').then(function() {
+      familyPin = input;
+      localStorage.setItem('atharvPin', familyPin);
+      document.getElementById('pin-overlay').style.display = 'none';
+      enableEditMode();
+    }).catch(function() {
+      document.getElementById('pin-error').textContent = 'Unable to verify PIN';
+    });
   }
 
-  (function() {
+  function toggleEdit() {
+    if (editMode) {
+      disableEditMode();
+      return;
+    }
     var saved = localStorage.getItem('atharvPin');
     if (saved && saved.length === 4) {
       familyPin = saved;
-      document.getElementById('pin-overlay').style.display = 'none';
+      enableEditMode();
     } else {
+      document.getElementById('pin-overlay').style.display = 'flex';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-error').textContent = '';
       document.getElementById('pin-input').focus();
     }
+  }
+
+  function enableEditMode() {
+    editMode = true;
+    document.body.classList.remove('readonly');
+    document.getElementById('edit-btn').textContent = 'Editing (Lock)';
+    document.getElementById('edit-btn').classList.add('active');
+  }
+
+  function disableEditMode() {
+    editMode = false;
+    document.body.classList.add('readonly');
+    document.getElementById('edit-btn').textContent = 'Edit Mode';
+    document.getElementById('edit-btn').classList.remove('active');
+  }
+
+  (function() {
+    // Start in read-only mode
+    document.body.classList.add('readonly');
     document.getElementById('pin-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') checkPin();
     });
@@ -448,7 +514,8 @@
   <div class="progress-bar-wrap">
     <div class="progress-bar-fill" id="progress-fill"></div>
   </div>
-  <p class="progress-label" id="progress-label">0 of 55 books read</p>
+  <p class="progress-label" id="progress-label">0 of 78 books read</p>
+  <button class="edit-btn" id="edit-btn" onclick="toggleEdit()">Edit Mode</button>
 </div>
 
 <button class="print-btn" onclick="window.print()">Print This Checklist</button>
@@ -734,8 +801,10 @@ function saveLocal(idx, entry) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(all));
 }
 
+var READ_PIN = '1107';
+
 function saveBook(idx) {
-  if (!familyPin) return;
+  if (!familyPin || !editMode) return;
   var cb = document.getElementById('cb-' + idx);
   var dateInput = document.getElementById('date-' + idx);
   var rating = 0;
@@ -836,11 +905,11 @@ function mergeData(primary, fallback) {
 }
 
 function loadData() {
-  if (!familyPin) return;
   var localData = getLocalData();
+  var readPath = familyPin || READ_PIN;
 
-  // Load from new PIN path
-  db.ref('family/' + familyPin + '/books').once('value').then(function(snapshot) {
+  // Load from PIN path (public read)
+  db.ref('family/' + readPath + '/books').once('value').then(function(snapshot) {
     saving = true;
     var firebaseData = snapshot.val();
 
@@ -853,7 +922,7 @@ function loadData() {
           // Merge: old data as fallback, new Firebase data wins conflicts
           var combined = mergeData(firebaseData, oldData);
           // Save migrated data to new path
-          db.ref('family/' + familyPin + '/books').set(combined);
+          db.ref('family/' + readPath + '/books').set(combined);
           applyData(combined);
         } else {
           // No old data, merge Firebase with localStorage
@@ -880,7 +949,7 @@ function loadData() {
   });
 }
 
-if (familyPin) loadData();
+loadData();
 updateProgress();
 </script>
 </body>
