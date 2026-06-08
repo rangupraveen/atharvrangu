@@ -374,10 +374,12 @@
   body.readonly .star-rating label,
   body.readonly input[type="date"] {
     pointer-events: none;
-    opacity: 0.7;
   }
   body.readonly .book-checkbox { cursor: default; }
   body.readonly .star-rating label { cursor: default; }
+  body.readonly input[type="date"]:not(.has-value) {
+    visibility: hidden;
+  }
 
   /* FOOTER */
   .footer {
@@ -823,6 +825,7 @@ function onCheck(idx) {
     var dateInput = document.getElementById('date-' + idx);
     if (!dateInput.value) {
       dateInput.value = new Date().toISOString().split('T')[0];
+      dateInput.classList.add('has-value');
     }
   } else {
     row.classList.remove('done');
@@ -834,6 +837,11 @@ function onCheck(idx) {
 function onDateChange(idx) {
   var cb = document.getElementById('cb-' + idx);
   var dateInput = document.getElementById('date-' + idx);
+  if (dateInput.value) {
+    dateInput.classList.add('has-value');
+  } else {
+    dateInput.classList.remove('has-value');
+  }
   if (dateInput.value && !cb.checked) {
     cb.checked = true;
     onCheck(idx);
@@ -888,6 +896,7 @@ function applyData(data) {
     }
     if (entry.date) {
       dateInput.value = entry.date;
+      dateInput.classList.add('has-value');
     }
     if (entry.rating) {
       var radio = document.getElementById('star-' + idx + '-' + entry.rating);
