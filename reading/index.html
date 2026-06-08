@@ -957,40 +957,17 @@ function loadData() {
   var localData = getLocalData();
   var readPath = familyPin || READ_PIN;
 
-  // Load from PIN path (public read)
   db.ref('family/' + readPath + '/books').once('value').then(function(snapshot) {
     saving = true;
     var firebaseData = snapshot.val();
-
-    // One-time migration: check old /books/ path
-    var migrated = localStorage.getItem('atharvMigrated');
-    if (!migrated) {
-      db.ref('books').once('value').then(function(oldSnapshot) {
-        var oldData = oldSnapshot.val();
-        if (oldData) {
-          // Merge: old data as fallback, new Firebase data wins conflicts
-          var combined = mergeData(firebaseData, oldData);
-          // Save migrated data to new path
-          db.ref('family/' + readPath + '/books').set(combined);
-          applyData(combined);
-        } else {
-          // No old data, merge Firebase with localStorage
-          var combined = mergeData(firebaseData, localData);
-          applyData(combined);
-        }
-        localStorage.setItem('atharvMigrated', 'true');
-        saving = false;
-        recountBooks();
-      });
-    } else {
-      // Already migrated: merge Firebase with localStorage backup
-      var combined = mergeData(firebaseData, localData);
-      applyData(combined);
-      saving = false;
-      recountBooks();
-    }
-  }).catch(function() {
+    // Merge: Firebase wins, localStorage fills gaps
+    var combined = mergeData(firebaseData, localData);
+    applyData(combined);
+    saving = false;
+    recountBooks();
+  }).catch(function(err) {
     // Firebase failed — load from localStorage backup
+    console.log('Firebase load failed, using localStorage:', err.message);
     saving = true;
     applyData(localData);
     saving = false;
