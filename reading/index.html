@@ -259,6 +259,7 @@
   .s4 .series-header { background: #DCF0FF; }
   .s5 .series-header { background: #EDE0FF; }
   .s6 .series-header { background: #D4EDDA; }
+  .s7 .series-header { background: #FFE0CC; }
 
   /* BACK LINK */
   .back-link {
@@ -660,6 +661,29 @@
   </table>
 </div>
 
+<!-- SERIES 7: Dog Man -->
+<div class="series-block s7">
+  <div class="series-header">
+    <span class="series-emoji">🐶</span>
+    <span class="series-title">Dog Man</span>
+    <span class="series-count">13 Books</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Done</th>
+      </tr>
+    </thead>
+    <tbody id="s7-body">
+    </tbody>
+  </table>
+</div>
+
 <div class="footer">
   <span class="trophy">🏆</span>
   Keep reading, Atharv — every book makes you smarter &amp; stronger!
@@ -756,6 +780,21 @@ const series = {
     { title: "Grand Slam!", note: "Book 6", pages: 208 },
     { title: "Dig Deeper!", note: "Book 7", pages: 208 },
     { title: "The End?", note: "Book 8", pages: 208 },
+  ],
+  s7: [
+    { title: "Dog Man", note: "Book 1", pages: 240 },
+    { title: "Dog Man Unleashed", note: "Book 2", pages: 240 },
+    { title: "A Tale of Two Kitties", note: "Book 3", pages: 256 },
+    { title: "Dog Man and Cat Kid", note: "Book 4", pages: 256 },
+    { title: "Lord of the Fleas", note: "Book 5", pages: 256 },
+    { title: "Brawl of the Wild", note: "Book 6", pages: 240 },
+    { title: "For Whom the Ball Rolls", note: "Book 7", pages: 256 },
+    { title: "Fetch-22", note: "Book 8", pages: 256 },
+    { title: "Grime and Punishment", note: "Book 9", pages: 240 },
+    { title: "Mothering Heights", note: "Book 10", pages: 240 },
+    { title: "Twenty Thousand Fleas Under the Sea", note: "Book 11", pages: 240 },
+    { title: "The Scarlet Shedder", note: "Book 12", pages: 240 },
+    { title: "Big Jim Begins", note: "Book 13", pages: 240 },
   ],
 };
 
@@ -873,6 +912,7 @@ buildTable('s3', series.s3);
 buildTable('s4', series.s4);
 buildTable('s5', series.s5);
 buildTable('s6', series.s6);
+buildTable('s7', series.s7);
 
 // Attach rating change listeners
 document.querySelectorAll('.star-rating input[type="radio"]').forEach(function(radio) {
