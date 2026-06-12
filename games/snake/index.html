@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Snake 🐍</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFD93D; --orange: #FF6B35; --green: #06D6A0; --blue: #4CC9F0;
+    --red: #EF233C; --bg: #FFF8F0; --text: #1A1A2E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 16px; display: flex; flex-direction: column; align-items: center;
+    -webkit-user-select: none; user-select: none;
+  }
+  a { text-decoration: none; color: inherit; }
+  .topbar { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .back-link { font-family: 'Fredoka One', cursive; font-size: 14px; color: var(--orange); border: 3px solid var(--text); border-radius: 12px; padding: 6px 14px; background: white; box-shadow: 3px 3px 0 var(--text); }
+  .title { font-family: 'Fredoka One', cursive; font-size: 22px; text-shadow: 2px 2px 0 var(--yellow); }
+  .scorebar { width: 100%; max-width: 420px; display: flex; justify-content: space-between; font-family: 'Fredoka One', cursive; font-size: 16px; margin-bottom: 10px; padding: 0 4px; }
+  .scorebar .label { color: #888; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .scorebar .val { color: var(--orange); }
+  .scorebar .val.best { color: var(--green); }
+  .stage { position: relative; width: 100%; max-width: 420px; }
+  canvas { display: block; width: 100%; height: auto; border: 4px solid var(--text); border-radius: 16px; box-shadow: 6px 6px 0 var(--text); background: #2b2b3d; touch-action: none; }
+  .overlay { position: absolute; inset: 0; background: rgba(26,26,46,0.82); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white; padding: 24px; }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-family: 'Fredoka One', cursive; font-size: 34px; margin-bottom: 8px; color: var(--yellow); }
+  .overlay p { font-size: 15px; font-weight: 700; margin-bottom: 6px; max-width: 280px; }
+  .overlay .big-score { font-family: 'Fredoka One', cursive; font-size: 40px; color: white; margin: 6px 0 14px; }
+  .overlay .big-score.hidden { display: none; }
+  .btn { background: var(--orange); color: white; border: 3px solid white; border-radius: 14px; padding: 12px 34px; font-family: 'Fredoka One', cursive; font-size: 20px; cursor: pointer; box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
+  .btn:active { transform: translateY(2px); }
+
+  /* D-PAD */
+  .dpad { margin-top: 16px; display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 64px); gap: 8px; }
+  .dbtn { background: white; border: 4px solid var(--text); border-radius: 14px; box-shadow: 3px 3px 0 var(--text); font-size: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
+  .dbtn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--text); }
+  .dbtn.up { grid-column: 2; grid-row: 1; }
+  .dbtn.left { grid-column: 1; grid-row: 2; }
+  .dbtn.down { grid-column: 2; grid-row: 2; }
+  .dbtn.right { grid-column: 3; grid-row: 2; }
+  .hint { margin-top: 12px; font-size: 13px; font-weight: 700; color: #999; text-align: center; max-width: 420px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="/games/" class="back-link">&larr; Games</a>
+  <span class="title">Snake 🐍</span>
+</div>
+<div class="scorebar">
+  <div><span class="label">Score</span> <span class="val" id="score">0</span></div>
+  <div><span class="label">Best</span> <span class="val best" id="best">0</span></div>
+</div>
+<div class="stage">
+  <canvas id="game" width="400" height="400"></canvas>
+  <div class="overlay" id="overlay">
+    <h2 id="ov-title">Snake</h2>
+    <p id="ov-text">Eat the apples and grow as long as you can!</p>
+    <div class="big-score hidden" id="ov-score"></div>
+    <button class="btn" id="startBtn">Start</button>
+  </div>
+</div>
+<div class="dpad">
+  <div class="dbtn up" data-dir="up">▲</div>
+  <div class="dbtn left" data-dir="left">◀</div>
+  <div class="dbtn down" data-dir="down">▼</div>
+  <div class="dbtn right" data-dir="right">▶</div>
+</div>
+<p class="hint">Use the arrow buttons, arrow keys, W A S D, or swipe to turn.</p>
+
+<script>
+(function() {
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var COLS = 20, ROWS = 20, CELL = 20;
+
+  var snake, dir, nextDir, food, state = 'start', score = 0;
+  var best = parseInt(localStorage.getItem('snakeHighScore') || '0', 10);
+  var stepMs = 140, acc = 0, lastTime = performance.now();
+  document.getElementById('best').textContent = best;
+
+  function reset() {
+    snake = [{x:9,y:10},{x:8,y:10},{x:7,y:10}];
+    dir = {x:1,y:0}; nextDir = {x:1,y:0};
+    score = 0; stepMs = 140;
+    document.getElementById('score').textContent = '0';
+    placeFood();
+  }
+
+  function placeFood() {
+    var ok = false;
+    while (!ok) {
+      food = {x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS)};
+      ok = !snake.some(function(s){ return s.x===food.x && s.y===food.y; });
+    }
+  }
+
+  function startGame() {
+    reset();
+    state = 'playing';
+    document.getElementById('overlay').classList.add('hidden');
+  }
+
+  function gameOver() {
+    state = 'over';
+    if (score > best) {
+      best = score;
+      localStorage.setItem('snakeHighScore', String(best));
+      document.getElementById('best').textContent = best;
+    }
+    document.getElementById('ov-title').textContent = 'Game Over';
+    document.getElementById('ov-text').textContent = score >= best && score > 0 ? 'New high score! 🏆' : 'Good try! Go again?';
+    var os = document.getElementById('ov-score');
+    os.textContent = 'Score: ' + score; os.classList.remove('hidden');
+    document.getElementById('startBtn').textContent = 'Play Again';
+    document.getElementById('overlay').classList.remove('hidden');
+  }
+
+  function setDir(d) {
+    var map = { up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0} };
+    var nd = map[d]; if (!nd) return;
+    // disallow direct reverse
+    if (nd.x === -dir.x && nd.y === -dir.y) return;
+    nextDir = nd;
+  }
+
+  function step() {
+    dir = nextDir;
+    var head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+    // wall collision
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) { gameOver(); return; }
+    // self collision
+    if (snake.some(function(s){ return s.x===head.x && s.y===head.y; })) { gameOver(); return; }
+    snake.unshift(head);
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      document.getElementById('score').textContent = score;
+      if (stepMs > 75) stepMs -= 3;
+      placeFood();
+    } else {
+      snake.pop();
+    }
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  function draw() {
+    ctx.fillStyle = '#2b2b3d';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    // subtle grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for (var i=1;i<COLS;i++){ ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo(i*CELL,canvas.height); ctx.stroke(); }
+    for (var j=1;j<ROWS;j++){ ctx.beginPath(); ctx.moveTo(0,j*CELL); ctx.lineTo(canvas.width,j*CELL); ctx.stroke(); }
+    // food
+    if (food) {
+      ctx.font = '18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('🍎', food.x*CELL+CELL/2, food.y*CELL+CELL/2+1);
+    }
+    // snake
+    if (snake) {
+      for (var k=0;k<snake.length;k++){
+        var s = snake[k];
+        ctx.fillStyle = k===0 ? '#04b386' : '#06D6A0';
+        roundRect(s.x*CELL+1.5, s.y*CELL+1.5, CELL-3, CELL-3, 6);
+        ctx.fill();
+        if (k===0) {
+          // eyes
+          ctx.fillStyle = 'white';
+          var cx = s.x*CELL+CELL/2, cy = s.y*CELL+CELL/2;
+          ctx.beginPath(); ctx.arc(cx - 3*dir.y - (dir.x!==0?0:3) + (dir.x?3:0), cy - 3*dir.x + (dir.y?3:0), 2, 0, 7); ctx.fill();
+          ctx.beginPath(); ctx.arc(cx + 3*dir.y + (dir.x?3:0), cy + 3*dir.x + (dir.y?3:0), 2, 0, 7); ctx.fill();
+        }
+      }
+    }
+  }
+
+  function loop(now) {
+    var dt = now - lastTime; lastTime = now;
+    if (dt > 200) dt = 200;
+    if (state === 'playing') {
+      acc += dt;
+      while (acc >= stepMs) { step(); acc -= stepMs; }
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // Input: keyboard
+  window.addEventListener('keydown', function(e){
+    var k = e.key.toLowerCase();
+    if (['arrowup','arrowdown','arrowleft','arrowright',' '].indexOf(e.key.toLowerCase())>=0 || k===' ') e.preventDefault();
+    if (k==='arrowup'||k==='w') setDir('up');
+    else if (k==='arrowdown'||k==='s') setDir('down');
+    else if (k==='arrowleft'||k==='a') setDir('left');
+    else if (k==='arrowright'||k==='d') setDir('right');
+    else if ((k===' '||k==='enter') && state!=='playing') startGame();
+  });
+
+  // Input: d-pad buttons
+  Array.prototype.forEach.call(document.querySelectorAll('.dbtn'), function(b){
+    b.addEventListener('pointerdown', function(e){ e.preventDefault(); setDir(b.getAttribute('data-dir')); });
+  });
+
+  // Input: swipe on canvas
+  var sx=0, sy=0, swiping=false;
+  canvas.addEventListener('pointerdown', function(e){ swiping=true; var r=canvas.getBoundingClientRect(); sx=e.clientX; sy=e.clientY; });
+  canvas.addEventListener('pointerup', function(e){
+    if (!swiping) return; swiping=false;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
+    if (Math.abs(dx) > Math.abs(dy)) setDir(dx>0?'right':'left');
+    else setDir(dy>0?'down':'up');
+  });
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
