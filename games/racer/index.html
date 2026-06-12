@@ -206,8 +206,8 @@
   var player = { x: W / 2, y: H - 90, w: 38, h: 54 };
   var PLAYER_STEER = 360; // px per second
 
-  // Enemy vehicles
-  var enemyEmojis = ['🚗','🚙','🚕','🚌','🛻','🚓'];
+  // Enemy vehicles (top-down cars in varied colors)
+  var enemyColors = ['#EF233C','#4CC9F0','#06D6A0','#FF6B35','#7B5EA7','#FF6B9D','#FFD93D'];
   var enemies = [];
 
   // Game state
@@ -302,7 +302,7 @@
       y: -60,
       w: 38,
       h: 54,
-      emoji: enemyEmojis[Math.floor(Math.random() * enemyEmojis.length)],
+      color: enemyColors[Math.floor(Math.random() * enemyColors.length)],
       wobble: (Math.random() - 0.5) * 0.4
     });
   }
@@ -349,16 +349,67 @@
     }
   }
 
-  function drawVehicle(emoji, x, y) {
-    // Vehicle emoji face left by default — rotate 90deg so they point up the road
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(Math.PI / 2);
-    ctx.font = '44px serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(emoji, 0, 0);
-    ctx.restore();
+  function roundRect(x, y, w, h, r) {
+    if (r > w/2) r = w/2; if (r > h/2) r = h/2;
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  // Top-down car: front points up (toward smaller y)
+  function drawCar(x, y, color) {
+    var w = 32, h = 52, left = x - w/2, top = y - h/2;
+    // wheels (poking out at the 4 corners)
+    ctx.fillStyle = '#141414';
+    roundRect(left-3, top+9, 6, 13, 2); ctx.fill();
+    roundRect(left+w-3, top+9, 6, 13, 2); ctx.fill();
+    roundRect(left-3, top+h-22, 6, 13, 2); ctx.fill();
+    roundRect(left+w-3, top+h-22, 6, 13, 2); ctx.fill();
+    // body
+    ctx.fillStyle = color;
+    roundRect(left, top, w, h, 9); ctx.fill();
+    // roof panel (slightly darker)
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    roundRect(left+5, top+20, w-10, h-40, 5); ctx.fill();
+    // windshield (front) and rear window (glass)
+    ctx.fillStyle = 'rgba(190,235,255,0.9)';
+    roundRect(left+5, top+9, w-10, 11, 3); ctx.fill();
+    ctx.fillStyle = 'rgba(190,235,255,0.55)';
+    roundRect(left+5, top+h-20, w-10, 10, 3); ctx.fill();
+    // headlights (front)
+    ctx.fillStyle = '#FFF3B0';
+    ctx.beginPath(); ctx.arc(left+6, top+3, 2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(left+w-6, top+3, 2, 0, 7); ctx.fill();
+    // taillights (rear)
+    ctx.fillStyle = '#FF4136';
+    ctx.beginPath(); ctx.arc(left+6, top+h-3, 2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(left+w-6, top+h-3, 2, 0, 7); ctx.fill();
+  }
+
+  // Top-down motorcycle: front points up
+  function drawBike(x, y) {
+    var h = 48;
+    // front + rear wheels along the centerline
+    ctx.fillStyle = '#141414';
+    roundRect(x-4, y-h/2, 8, 15, 3); ctx.fill();
+    roundRect(x-4, y+h/2-15, 8, 15, 3); ctx.fill();
+    // frame / body
+    ctx.fillStyle = '#1f6feb';
+    roundRect(x-5, y-12, 10, 26, 4); ctx.fill();
+    // handlebars near the front
+    ctx.fillStyle = '#333';
+    roundRect(x-10, y-10, 20, 4, 2); ctx.fill();
+    // rider: jacket then helmet (top view)
+    ctx.fillStyle = '#EF233C';
+    roundRect(x-6, y-5, 12, 17, 5); ctx.fill();
+    ctx.fillStyle = '#FFD93D';
+    ctx.beginPath(); ctx.arc(x, y-1, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.arc(x, y-2.5, 4.5, Math.PI, 2*Math.PI); ctx.fill(); // visor
   }
 
   function draw() {
@@ -386,11 +437,11 @@
 
     // Enemies
     for (var i = 0; i < enemies.length; i++) {
-      drawVehicle(enemies[i].emoji, enemies[i].x, enemies[i].y);
+      drawCar(enemies[i].x, enemies[i].y, enemies[i].color);
     }
 
     // Player
-    drawVehicle('🏍️', player.x, player.y);
+    drawBike(player.x, player.y);
   }
 
   // ---- Main loop ----
