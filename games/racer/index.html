@@ -350,10 +350,15 @@
   }
 
   function drawVehicle(emoji, x, y) {
+    // Vehicle emoji face left by default — rotate 90deg so they point up the road
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI / 2);
     ctx.font = '44px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(emoji, x, y);
+    ctx.fillText(emoji, 0, 0);
+    ctx.restore();
   }
 
   function draw() {
