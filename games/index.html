@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atharv's Game Zone</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFD93D;
+    --orange: #FF6B35;
+    --pink: #FF6B9D;
+    --green: #06D6A0;
+    --blue: #4CC9F0;
+    --purple: #7B5EA7;
+    --red: #EF233C;
+    --teal: #0CB0A9;
+    --bg: #FFF8F0;
+    --text: #1A1A2E;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    color: var(--orange);
+    border: 3px solid var(--text);
+    border-radius: 12px;
+    padding: 8px 18px;
+    background: white;
+    box-shadow: 3px 3px 0 var(--text);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .back-link:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--text); }
+
+  .header { text-align: center; margin-bottom: 36px; }
+  .header-badge {
+    display: inline-block;
+    background: var(--yellow);
+    border: 4px solid var(--text);
+    border-radius: 50px;
+    padding: 6px 22px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    box-shadow: 3px 3px 0 var(--text);
+  }
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 48px;
+    line-height: 1.1;
+    text-shadow: 4px 4px 0 var(--yellow);
+  }
+  .subtitle { font-size: 16px; font-weight: 700; color: #666; margin-top: 8px; }
+
+  .games-grid {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 28px;
+  }
+
+  .game-card {
+    border: 4px solid var(--text);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 6px 6px 0 var(--text);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    flex-direction: column;
+    background: white;
+  }
+  .game-card.playable:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--text); }
+  .game-card.soon { opacity: 0.75; }
+
+  .game-art {
+    font-size: 72px;
+    text-align: center;
+    padding: 28px 0;
+    border-bottom: 3px solid var(--text);
+    line-height: 1;
+  }
+  .game-art-racer { background: linear-gradient(135deg, #DCF0FF, #B8E0FF); }
+  .game-art-pacman { background: linear-gradient(135deg, #FFF0CC, #FFE6A0); }
+  .game-art-snake { background: linear-gradient(135deg, #D8F5E8, #B0EBD2); }
+  .game-art-tetris { background: linear-gradient(135deg, #EDE0FF, #DCC8FF); }
+
+  .game-body { padding: 18px 20px 22px; flex: 1; display: flex; flex-direction: column; }
+  .game-title { font-family: 'Fredoka One', cursive; font-size: 22px; margin-bottom: 6px; }
+  .game-desc { font-size: 14px; font-weight: 600; color: #555; line-height: 1.4; margin-bottom: 16px; flex: 1; }
+
+  .play-btn {
+    display: inline-block;
+    background: var(--orange);
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .game-card.playable:hover .play-btn { background: var(--red); }
+
+  .soon-badge {
+    display: inline-block;
+    background: #e0e0e0;
+    color: #999;
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: #bbb;
+  }
+</style>
+</head>
+<body>
+
+<a href="/" class="back-link">&larr; Back to Home</a>
+
+<div class="header">
+  <div class="header-badge">Game Zone</div>
+  <h1>Atharv's Arcade</h1>
+  <p class="subtitle">Pick a game and beat your high score! 🎮</p>
+</div>
+
+<div class="games-grid">
+
+  <!-- Motorcycle Racer (playable) -->
+  <a href="/games/racer/" class="game-card playable">
+    <div class="game-art game-art-racer">🏍️</div>
+    <div class="game-body">
+      <div class="game-title">Highway Racer</div>
+      <div class="game-desc">Ride your motorcycle, dodge traffic, and go faster and faster. How far can you get?</div>
+      <span class="play-btn">Play Now &rarr;</span>
+    </div>
+  </a>
+
+  <!-- Pac-Man style (coming soon) -->
+  <div class="game-card soon">
+    <div class="game-art game-art-pacman">🟡</div>
+    <div class="game-body">
+      <div class="game-title">Maze Muncher</div>
+      <div class="game-desc">Gobble all the dots and dodge the ghosts in this classic maze chase.</div>
+      <span class="soon-badge">Coming Soon</span>
+    </div>
+  </div>
+
+  <!-- Snake (coming soon) -->
+  <div class="game-card soon">
+    <div class="game-art game-art-snake">🐍</div>
+    <div class="game-body">
+      <div class="game-title">Snake</div>
+      <div class="game-desc">Eat, grow longer, and don't bite your own tail. Simple and addictive!</div>
+      <span class="soon-badge">Coming Soon</span>
+    </div>
+  </div>
+
+  <!-- Tetris style (coming soon) -->
+  <div class="game-card soon">
+    <div class="game-art game-art-tetris">🧱</div>
+    <div class="game-body">
+      <div class="game-title">Block Drop</div>
+      <div class="game-desc">Stack the falling blocks, clear the lines, and don't let them pile up!</div>
+      <span class="soon-badge">Coming Soon</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  More games coming soon — keep playing, Atharv! 🕹️
+</div>
+
+</body>
+</html>
