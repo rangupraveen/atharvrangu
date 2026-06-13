@@ -90,6 +90,59 @@
     margin-top: 5px;
   }
 
+  /* FILTER BAR */
+  .filter-bar {
+    max-width: 720px;
+    margin: 0 auto 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 3px solid var(--text);
+    border-radius: 14px;
+    padding: 8px 16px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    background: white;
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--text);
+    transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
+    user-select: none;
+  }
+  .filter-chip:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--text); }
+  .filter-chip:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--text); }
+  .filter-chip .chip-count {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+    padding: 1px 8px;
+  }
+  .filter-chip.active { background: var(--orange); color: white; }
+  .filter-chip.active .chip-count { background: rgba(0,0,0,0.25); }
+  .filter-chip.f-planned.active  { background: #6b8aae; color: white; }
+  .filter-chip.f-reading.active  { background: var(--yellow); color: var(--text); }
+  .filter-chip.f-finished.active { background: var(--green); color: white; }
+
+  /* When a filter is active, hide rows that don't match */
+  body.filter-planned  tbody tr:not(.is-planned)  { display: none; }
+  body.filter-reading  tbody tr:not(.is-reading)  { display: none; }
+  body.filter-finished tbody tr:not(.is-finished) { display: none; }
+
+  /* Print always shows everything regardless of filter */
+  @media print {
+    body.filter-planned  tbody tr,
+    body.filter-reading  tbody tr,
+    body.filter-finished tbody tr { display: table-row !important; }
+  }
+
   /* REWARD BLOCK */
   .reward {
     max-width: 560px;
@@ -619,6 +672,13 @@
   </div>
 </div>
 
+<div class="filter-bar" id="filter-bar">
+  <div class="filter-chip f-all active"      data-filter="all"      onclick="setFilter('all')">All <span class="chip-count" id="cnt-all">0</span></div>
+  <div class="filter-chip f-planned"         data-filter="planned"  onclick="setFilter('planned')">📘 Planned <span class="chip-count" id="cnt-planned">0</span></div>
+  <div class="filter-chip f-reading"         data-filter="reading"  onclick="setFilter('reading')">📖 Reading <span class="chip-count" id="cnt-reading">0</span></div>
+  <div class="filter-chip f-finished"        data-filter="finished" onclick="setFilter('finished')">✅ Finished <span class="chip-count" id="cnt-finished">0</span></div>
+</div>
+
 <button class="print-btn" onclick="window.print()">Print This Checklist</button>
 
 <!-- SERIES 1: Diary of a Wimpy Kid -->
@@ -931,6 +991,7 @@ function buildTable(seriesKey, data) {
     totalBooks++;
     var tr = document.createElement('tr');
     tr.id = 'row-' + idx;
+    tr.className = 'is-planned';
     tr.innerHTML =
       '<td class="num">' + (i + 1) + '</td>' +
       '<td class="title-cell"><span class="book-title-text">' + book.title + '</span><div class="subtitle-small">' + book.note + '</div></td>' +
@@ -971,7 +1032,7 @@ function setStatus(idx, status) {
   if (radio) radio.checked = true;
   var row = document.getElementById('row-' + idx);
   if (!row) return;
-  row.classList.remove('done', 'reading');
+  row.classList.remove('done', 'reading', 'is-planned', 'is-reading', 'is-finished');
   // remove any old badge
   var titleCell = row.querySelector('.book-title-text');
   if (titleCell) {
@@ -979,16 +1040,41 @@ function setStatus(idx, status) {
     if (oldBadge) oldBadge.remove();
   }
   if (status === 'finished') {
-    row.classList.add('done');
+    row.classList.add('done', 'is-finished');
   } else if (status === 'reading') {
-    row.classList.add('reading');
+    row.classList.add('reading', 'is-reading');
     if (titleCell && !titleCell.parentNode.querySelector('.reading-badge')) {
       var badge = document.createElement('span');
       badge.className = 'reading-badge';
       badge.textContent = '📖 Reading';
       titleCell.insertAdjacentElement('afterend', badge);
     }
+  } else {
+    row.classList.add('is-planned');
   }
+}
+
+function updateFilterCounts() {
+  var planned  = document.querySelectorAll('tbody tr.is-planned').length;
+  var reading  = document.querySelectorAll('tbody tr.is-reading').length;
+  var finished = document.querySelectorAll('tbody tr.is-finished').length;
+  var total = planned + reading + finished;
+  var cAll = document.getElementById('cnt-all');
+  var cP = document.getElementById('cnt-planned');
+  var cR = document.getElementById('cnt-reading');
+  var cF = document.getElementById('cnt-finished');
+  if (cAll) cAll.textContent = total;
+  if (cP) cP.textContent = planned;
+  if (cR) cR.textContent = reading;
+  if (cF) cF.textContent = finished;
+}
+
+function setFilter(which) {
+  document.body.classList.remove('filter-planned', 'filter-reading', 'filter-finished');
+  if (which !== 'all') document.body.classList.add('filter-' + which);
+  Array.prototype.forEach.call(document.querySelectorAll('.filter-chip'), function(c) {
+    c.classList.toggle('active', c.getAttribute('data-filter') === which);
+  });
 }
 
 function saveBook(idx) {
@@ -1038,6 +1124,7 @@ function onRating(idx) {
 function recountBooks() {
   completedBooks = document.querySelectorAll('.s-finished:checked').length;
   updateProgress();
+  updateFilterCounts();
 }
 
 function updateProgress() {
