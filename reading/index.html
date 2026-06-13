@@ -90,6 +90,64 @@
     margin-top: 5px;
   }
 
+  /* REWARD BLOCK */
+  .reward {
+    max-width: 560px;
+    margin: 0 auto 32px;
+    border: 4px solid var(--text);
+    border-radius: 20px;
+    background: linear-gradient(135deg, #FFF8E1 0%, #FFE6A0 100%);
+    box-shadow: 6px 6px 0 var(--text);
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .reward-icon {
+    font-size: 58px;
+    line-height: 1;
+    flex-shrink: 0;
+    filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.15));
+  }
+  .reward-body { flex: 1; min-width: 0; }
+  .reward-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .reward-sub {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6b5a18;
+    margin-bottom: 10px;
+  }
+  .reward-bar-wrap {
+    background: rgba(0,0,0,0.12);
+    border: 3px solid var(--text);
+    border-radius: 16px;
+    height: 18px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .reward-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), var(--red));
+    width: 0%;
+    transition: width 0.6s ease;
+    border-radius: 16px;
+  }
+  .reward-count {
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .reward.unlocked .reward-bar-fill {
+    background: linear-gradient(90deg, var(--green), #04b386);
+  }
+  .reward.unlocked .reward-title::after {
+    content: ' 🎉';
+  }
+
   /* SERIES SECTIONS */
   .series-block {
     margin-bottom: 36px;
@@ -145,6 +203,19 @@
   tbody tr:hover { background: rgba(255,255,255,0.5); }
   tbody tr.done { background: rgba(6,214,160,0.12) !important; }
   tbody tr.done td { opacity: 0.75; }
+  tbody tr.reading { background: rgba(255,217,61,0.18) !important; }
+  .reading-badge {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    background: var(--yellow);
+    color: var(--text);
+    border: 2px solid var(--text);
+    border-radius: 10px;
+    padding: 1px 7px;
+    vertical-align: middle;
+  }
 
   td {
     padding: 11px 12px;
@@ -216,41 +287,56 @@
   .star-rating label:hover ~ label,
   .star-rating input[type="radio"]:checked ~ label { color: var(--yellow); }
 
-  /* CHECK CELL */
-  td.check-cell {
+  /* STATUS CELL (Planned / Reading / Finished) */
+  td.status-cell {
+    width: 110px;
     text-align: center;
-    width: 60px;
+    padding: 8px 6px;
   }
-  .book-checkbox {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 28px;
-    height: 28px;
-    border: 3px solid var(--text);
-    border-radius: 8px;
+  .status-group {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: stretch;
+  }
+  .status-group input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0; height: 0;
+    pointer-events: none;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 2.5px solid var(--text);
+    border-radius: 10px;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-weight: 800;
     cursor: pointer;
     background: white;
-    position: relative;
-    transition: background 0.2s, transform 0.15s;
-    display: inline-block;
-    vertical-align: middle;
+    color: var(--text);
+    transition: background 0.15s, transform 0.1s;
+    user-select: none;
+    white-space: nowrap;
+    justify-content: flex-start;
   }
-  .book-checkbox:checked {
-    background: var(--green);
-    transform: scale(1.1);
+  .status-pill:hover { transform: translateY(-1px); }
+  .status-pill .pill-emoji { font-size: 14px; line-height: 1; }
+  .status-group input.s-planned:checked + .status-pill   { background: #e3eaf5; }
+  .status-group input.s-reading:checked  + .status-pill   { background: var(--yellow); }
+  .status-group input.s-finished:checked + .status-pill   { background: var(--green); color: white; }
+
+  /* On very narrow screens, hide the text label and show emoji only */
+  @media (max-width: 560px) {
+    td.status-cell { width: 56px; padding: 8px 4px; }
+    .status-pill .pill-text { display: none; }
+    .status-pill { justify-content: center; padding: 6px; }
   }
-  .book-checkbox:checked::after {
-    content: '\2713';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 16px;
-    font-weight: 900;
-    line-height: 1;
-  }
-  .book-checkbox:hover { border-color: var(--orange); }
+
+  /* Hide the legacy checkbox if anything still references it */
+  .book-checkbox { display: none; }
 
   /* COLORS PER SERIES */
   .s1 .series-header { background: #FFF0CC; }
@@ -373,11 +459,13 @@
   /* READ-ONLY MODE */
   body.readonly .book-checkbox,
   body.readonly .star-rating label,
+  body.readonly .status-pill,
   body.readonly input[type="date"] {
     pointer-events: none;
   }
   body.readonly .book-checkbox { cursor: default; }
   body.readonly .star-rating label { cursor: default; }
+  body.readonly .status-pill { cursor: default; }
   body.readonly input[type="date"]:not(.has-value) {
     visibility: hidden;
   }
@@ -517,8 +605,18 @@
   <div class="progress-bar-wrap">
     <div class="progress-bar-fill" id="progress-fill"></div>
   </div>
-  <p class="progress-label" id="progress-label">0 of 78 books read</p>
+  <p class="progress-label" id="progress-label">0 of 91 books read</p>
   <button class="edit-btn" id="edit-btn" onclick="toggleEdit()">Edit Mode</button>
+</div>
+
+<div class="reward" id="reward">
+  <div class="reward-icon" id="reward-icon">🎁</div>
+  <div class="reward-body">
+    <div class="reward-title" id="reward-title">Mystery Box Reward</div>
+    <div class="reward-sub">Finish 25 books to unlock!</div>
+    <div class="reward-bar-wrap"><div class="reward-bar-fill" id="reward-fill"></div></div>
+    <div class="reward-count" id="reward-count">0 / 25 finished</div>
+  </div>
 </div>
 
 <button class="print-btn" onclick="window.print()">Print This Checklist</button>
@@ -538,7 +636,7 @@
         <th class="center">Pages</th>
         <th>Date Finished</th>
         <th>My Rating</th>
-        <th class="center">Done</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody id="s1-body">
@@ -561,7 +659,7 @@
         <th class="center">Pages</th>
         <th>Date Finished</th>
         <th>My Rating</th>
-        <th class="center">Done</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody id="s2-body">
@@ -584,7 +682,7 @@
         <th class="center">Pages</th>
         <th>Date Finished</th>
         <th>My Rating</th>
-        <th class="center">Done</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody id="s3-body">
@@ -607,7 +705,7 @@
         <th class="center">Pages</th>
         <th>Date Finished</th>
         <th>My Rating</th>
-        <th class="center">Done</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody id="s4-body">
@@ -630,7 +728,7 @@
         <th class="center">Pages</th>
         <th>Date Finished</th>
         <th>My Rating</th>
-        <th class="center">Done</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody id="s5-body">
@@ -653,7 +751,7 @@
         <th class="center">Pages</th>
         <th>Date Finished</th>
         <th>My Rating</th>
-        <th class="center">Done</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody id="s6-body">
@@ -676,7 +774,7 @@
         <th class="center">Pages</th>
         <th>Date Finished</th>
         <th>My Rating</th>
-        <th class="center">Done</th>
+        <th class="center">Status</th>
       </tr>
     </thead>
     <tbody id="s7-body">
@@ -809,6 +907,23 @@ function makeStars(id) {
   return '<div class="star-rating">' + radios + '</div>';
 }
 
+function makeStatusGroup(idx) {
+  function pill(value, cls, emoji, label) {
+    var id = 'st-' + idx + '-' + value;
+    var checked = value === 'planned' ? 'checked' : '';
+    return '<input type="radio" name="st-' + idx + '" id="' + id + '" class="' + cls + '" value="' + value + '" ' + checked +
+      ' onchange="onStatusChange(\'' + idx + '\', \'' + value + '\')">' +
+      '<label class="status-pill" for="' + id + '" title="' + label + '">' +
+        '<span class="pill-emoji">' + emoji + '</span><span class="pill-text">' + label + '</span>' +
+      '</label>';
+  }
+  return '<div class="status-group">' +
+    pill('planned', 's-planned', '📘', 'Planned') +
+    pill('reading', 's-reading', '📖', 'Reading') +
+    pill('finished', 's-finished', '✅', 'Finished') +
+  '</div>';
+}
+
 function buildTable(seriesKey, data) {
   var tbody = document.getElementById(seriesKey + '-body');
   data.forEach(function(book, i) {
@@ -818,11 +933,11 @@ function buildTable(seriesKey, data) {
     tr.id = 'row-' + idx;
     tr.innerHTML =
       '<td class="num">' + (i + 1) + '</td>' +
-      '<td class="title-cell">' + book.title + '<div class="subtitle-small">' + book.note + '</div></td>' +
+      '<td class="title-cell"><span class="book-title-text">' + book.title + '</span><div class="subtitle-small">' + book.note + '</div></td>' +
       '<td class="pages">' + book.pages + '</td>' +
       '<td class="date-cell"><input type="date" id="date-' + idx + '" onchange="onDateChange(\'' + idx + '\')"></td>' +
       '<td class="rating-cell">' + makeStars(idx) + '</td>' +
-      '<td class="check-cell"><input type="checkbox" class="book-checkbox" id="cb-' + idx + '" onchange="onCheck(\'' + idx + '\')"></td>';
+      '<td class="status-cell">' + makeStatusGroup(idx) + '</td>';
     tbody.appendChild(tr);
   });
 }
@@ -844,46 +959,73 @@ function saveLocal(idx, entry) {
 
 var READ_PIN = '1107';
 
+var REWARD_GOAL = 25;
+
+function getStatus(idx) {
+  var checked = document.querySelector('input[name="st-' + idx + '"]:checked');
+  return checked ? checked.value : 'planned';
+}
+
+function setStatus(idx, status) {
+  var radio = document.getElementById('st-' + idx + '-' + status);
+  if (radio) radio.checked = true;
+  var row = document.getElementById('row-' + idx);
+  if (!row) return;
+  row.classList.remove('done', 'reading');
+  // remove any old badge
+  var titleCell = row.querySelector('.book-title-text');
+  if (titleCell) {
+    var oldBadge = titleCell.parentNode.querySelector('.reading-badge');
+    if (oldBadge) oldBadge.remove();
+  }
+  if (status === 'finished') {
+    row.classList.add('done');
+  } else if (status === 'reading') {
+    row.classList.add('reading');
+    if (titleCell && !titleCell.parentNode.querySelector('.reading-badge')) {
+      var badge = document.createElement('span');
+      badge.className = 'reading-badge';
+      badge.textContent = '📖 Reading';
+      titleCell.insertAdjacentElement('afterend', badge);
+    }
+  }
+}
+
 function saveBook(idx) {
   if (!familyPin || !editMode) return;
-  var cb = document.getElementById('cb-' + idx);
+  var status = getStatus(idx);
   var dateInput = document.getElementById('date-' + idx);
   var rating = 0;
   var checked = document.querySelector('input[name="star-' + idx + '"]:checked');
   if (checked) rating = parseInt(checked.value);
-  var entry = { done: cb.checked, date: dateInput.value || '', rating: rating };
+  var entry = { status: status, date: dateInput.value || '', rating: rating };
   db.ref('family/' + familyPin + '/books/' + idx).set(entry);
   saveLocal(idx, entry);
 }
 
-function onCheck(idx) {
-  var cb = document.getElementById('cb-' + idx);
-  var row = document.getElementById('row-' + idx);
-  if (cb.checked) {
-    row.classList.add('done');
+function onStatusChange(idx, status) {
+  setStatus(idx, status);
+  if (status === 'finished') {
     var dateInput = document.getElementById('date-' + idx);
-    if (!dateInput.value) {
+    if (dateInput && !dateInput.value) {
       dateInput.value = new Date().toISOString().split('T')[0];
       dateInput.classList.add('has-value');
     }
-  } else {
-    row.classList.remove('done');
   }
   recountBooks();
   if (!saving) saveBook(idx);
 }
 
 function onDateChange(idx) {
-  var cb = document.getElementById('cb-' + idx);
   var dateInput = document.getElementById('date-' + idx);
   if (dateInput.value) {
     dateInput.classList.add('has-value');
   } else {
     dateInput.classList.remove('has-value');
   }
-  if (dateInput.value && !cb.checked) {
-    cb.checked = true;
-    onCheck(idx);
+  // Picking a date promotes to "finished" (just like before)
+  if (dateInput.value && getStatus(idx) !== 'finished') {
+    onStatusChange(idx, 'finished');
     return;
   }
   if (!saving) saveBook(idx);
@@ -894,7 +1036,7 @@ function onRating(idx) {
 }
 
 function recountBooks() {
-  completedBooks = document.querySelectorAll('.book-checkbox:checked').length;
+  completedBooks = document.querySelectorAll('.s-finished:checked').length;
   updateProgress();
 }
 
@@ -904,6 +1046,26 @@ function updateProgress() {
   document.getElementById('progress-label').textContent = completedBooks + ' of ' + totalBooks + ' books read';
   var label = completedBooks === 0 ? 'Start reading!' : completedBooks < 10 ? 'Great start!' : completedBooks < 25 ? 'On a roll!' : completedBooks < 45 ? 'Amazing progress!' : 'Reading Champion!';
   document.getElementById('stars-display').textContent = completedBooks + ' book' + (completedBooks !== 1 ? 's' : '') + ' completed — ' + label;
+
+  // Reward bar
+  var rewardEl = document.getElementById('reward');
+  var fill = document.getElementById('reward-fill');
+  var count = document.getElementById('reward-count');
+  var icon = document.getElementById('reward-icon');
+  var title = document.getElementById('reward-title');
+  var capped = Math.min(completedBooks, REWARD_GOAL);
+  var rPct = Math.round((capped / REWARD_GOAL) * 100);
+  if (fill) fill.style.width = rPct + '%';
+  if (count) count.textContent = capped + ' / ' + REWARD_GOAL + ' finished';
+  if (completedBooks >= REWARD_GOAL) {
+    rewardEl.classList.add('unlocked');
+    if (icon) icon.textContent = '🎉';
+    if (title) title.textContent = 'Mystery Box Unlocked!';
+  } else {
+    rewardEl.classList.remove('unlocked');
+    if (icon) icon.textContent = '🎁';
+    if (title) title.textContent = 'Mystery Box Reward';
+  }
 }
 
 buildTable('s1', series.s1);
@@ -926,15 +1088,14 @@ function applyData(data) {
   if (!data) return;
   Object.keys(data).forEach(function(idx) {
     var entry = data[idx];
-    var cb = document.getElementById('cb-' + idx);
     var dateInput = document.getElementById('date-' + idx);
     var row = document.getElementById('row-' + idx);
-    if (!cb) return;
-    if (entry.done) {
-      cb.checked = true;
-      row.classList.add('done');
-    }
-    if (entry.date) {
+    if (!row) return;
+    // Status: prefer new field, fall back to legacy `done`
+    var status = entry.status;
+    if (!status) status = entry.done ? 'finished' : 'planned';
+    setStatus(idx, status);
+    if (entry.date && dateInput) {
       dateInput.value = entry.date;
       dateInput.classList.add('has-value');
     }
@@ -942,7 +1103,7 @@ function applyData(data) {
       var radio = document.getElementById('star-' + idx + '-' + entry.rating);
       if (radio) radio.checked = true;
     }
-    saveLocal(idx, entry);
+    saveLocal(idx, { status: status, date: entry.date || '', rating: entry.rating || 0 });
   });
 }
 
