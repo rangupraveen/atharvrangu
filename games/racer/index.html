@@ -124,6 +124,19 @@
     box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
   }
   .btn:active { transform: translateY(2px); }
+  .mode-btn {
+    background: white;
+    color: var(--text);
+    border: 3px solid var(--text);
+    border-radius: 12px;
+    padding: 8px 20px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 14px;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+  }
+  .mode-btn:active { transform: translateY(2px); }
 
   /* TOUCH CONTROLS */
   .controls {
@@ -165,8 +178,8 @@
 </div>
 
 <div class="scorebar">
-  <div><span class="label">Score</span> <span class="val" id="score">0</span></div>
-  <div><span class="label">Best</span> <span class="val best" id="best">0</span></div>
+  <div><span class="label" id="label1">Score</span> <span class="val" id="score">0</span></div>
+  <div><span class="label" id="label2">Best</span> <span class="val best" id="best">0</span></div>
 </div>
 
 <div class="stage">
@@ -175,6 +188,7 @@
     <h2 id="ov-title">Highway Racer</h2>
     <p id="ov-text">Dodge the traffic and ride as far as you can!</p>
     <div class="big-score hidden" id="ov-score"></div>
+    <button class="mode-btn" id="modeBtn">👤 1 Player</button>
     <button class="btn" id="startBtn">Start Race</button>
   </div>
 </div>
@@ -184,7 +198,7 @@
   <div class="ctrl-btn" id="rightBtn">▶</div>
 </div>
 
-<p class="hint">Use ◀ ▶ buttons, arrow keys, or A / D to steer. Tap the left or right side of the road too!</p>
+<p class="hint" id="hint">Use ◀ ▶ buttons, arrow keys, or A / D to steer. Tap the left or right side of the road too!</p>
 
 <script>
 (function() {
@@ -202,9 +216,13 @@
 
   function laneCenter(i) { return ROAD_LEFT + LANE_W * (i + 0.5); }
 
-  // Player
-  var player = { x: W / 2, y: H - 90, w: 38, h: 54 };
+  // Players
   var PLAYER_STEER = 360; // px per second
+  var PLAYER_Y = H - 90, PW = 38, PH = 54;
+  var P1_COLORS = { frame:'#1f6feb', jacket:'#EF233C', helmet:'#FFD93D' };
+  var P2_COLORS = { frame:'#06D6A0', jacket:'#FF6B35', helmet:'#FFFFFF' };
+  var mode = 1;        // 1 or 2 players
+  var players = [];
 
   // Enemy vehicles (top-down cars in varied colors)
   var enemyColors = ['#EF233C','#4CC9F0','#06D6A0','#FF6B35','#7B5EA7','#FF6B9D','#FFD93D'];
@@ -214,13 +232,25 @@
   var state = 'start'; // start | playing | over
   var gameSpeed = 220;
   var distance = 0;
-  var score = 0;
   var best = parseInt(localStorage.getItem('racerHighScore') || '0', 10);
   var spawnTimer = 0;
   var dashOffset = 0;
-  var steer = 0; // -1 left, +1 right, 0 none
 
   document.getElementById('best').textContent = best;
+
+  // Mode toggle
+  var modeBtn = document.getElementById('modeBtn');
+  modeBtn.addEventListener('click', function() {
+    mode = mode === 1 ? 2 : 1;
+    modeBtn.textContent = mode === 1 ? '👤 1 Player' : '👥 2 Players';
+    updateHint();
+  });
+  function updateHint() {
+    var hint = document.getElementById('hint');
+    hint.innerHTML = mode === 2
+      ? 'Player 1: arrow keys &nbsp;•&nbsp; Player 2: A / D keys — both race at once!'
+      : 'Use ◀ ▶ buttons, arrow keys, or A / D to steer. Tap the left or right side too!';
+  }
 
   // ---- Input ----
   var keys = {};
@@ -253,41 +283,83 @@
   canvas.addEventListener('pointerup', function() { canvasTap = 0; });
   canvas.addEventListener('pointerleave', function() { canvasTap = 0; });
 
-  function currentSteer() {
+  function steerForPlayer(p) {
     var s = 0;
-    if (keys['arrowleft'] || keys['a']) s -= 1;
-    if (keys['arrowright'] || keys['d']) s += 1;
-    if (leftBtn._held) s -= 1;
-    if (rightBtn._held) s += 1;
-    s += canvasTap;
+    if (mode === 2 && p.id === 2) {
+      // Player 2: A / D only
+      if (keys['a']) s -= 1;
+      if (keys['d']) s += 1;
+    } else {
+      // Player 1 (and solo): arrows + touch + tap (and A/D in solo)
+      if (keys['arrowleft'] || (mode === 1 && keys['a'])) s -= 1;
+      if (keys['arrowright'] || (mode === 1 && keys['d'])) s += 1;
+      if (leftBtn._held) s -= 1;
+      if (rightBtn._held) s += 1;
+      s += canvasTap;
+    }
     return Math.max(-1, Math.min(1, s));
   }
 
   // ---- Game flow ----
+  function makePlayer(id, x, colors) {
+    return { id:id, x:x, y:PLAYER_Y, w:PW, h:PH, alive:true, dist:0, score:0, colors:colors };
+  }
+
   function startGame() {
     state = 'playing';
     enemies = [];
     gameSpeed = 220;
     distance = 0;
-    score = 0;
     spawnTimer = 0.6;
-    player.x = W / 2;
+    players = [];
+    if (mode === 2) {
+      players.push(makePlayer(1, ROAD_LEFT + ROAD_WIDTH * 0.33, P1_COLORS));
+      players.push(makePlayer(2, ROAD_LEFT + ROAD_WIDTH * 0.67, P2_COLORS));
+    } else {
+      players.push(makePlayer(1, W / 2, P1_COLORS));
+    }
+    setupScorebar();
     document.getElementById('overlay').classList.add('hidden');
-    document.getElementById('score').textContent = '0';
   }
 
-  function gameOver() {
-    state = 'over';
-    if (score > best) {
-      best = score;
-      localStorage.setItem('racerHighScore', String(best));
-      document.getElementById('best').textContent = best;
+  function setupScorebar() {
+    var sEl = document.getElementById('score'), bEl = document.getElementById('best');
+    if (mode === 2) {
+      document.getElementById('label1').textContent = 'P1';
+      document.getElementById('label2').textContent = 'P2';
+      sEl.textContent = '0'; bEl.textContent = '0';
+      sEl.style.color = P1_COLORS.frame;
+      bEl.style.color = P2_COLORS.frame;
+    } else {
+      document.getElementById('label1').textContent = 'Score';
+      document.getElementById('label2').textContent = 'Best';
+      sEl.textContent = '0'; bEl.textContent = best;
+      sEl.style.color = ''; bEl.style.color = '';
     }
+  }
+
+  function endGame() {
+    state = 'over';
     var ov = document.getElementById('overlay');
-    document.getElementById('ov-title').textContent = 'Crash! 💥';
-    document.getElementById('ov-text').textContent = score >= best && score > 0 ? 'New high score! 🏆' : 'Nice ride! Try again?';
     var os = document.getElementById('ov-score');
-    os.textContent = 'Score: ' + score;
+    if (mode === 2) {
+      var p1 = players[0].score, p2 = players[1].score;
+      document.getElementById('ov-title').textContent = 'Game Over 💥';
+      document.getElementById('ov-text').textContent =
+        p1 > p2 ? '🏆 Player 1 wins!' : p2 > p1 ? '🏆 Player 2 wins!' : "It's a tie! 🤝";
+      os.textContent = 'P1: ' + p1 + '   •   P2: ' + p2;
+    } else {
+      var score = players[0].score;
+      var isHigh = score > best && score > 0;
+      if (score > best) {
+        best = score;
+        localStorage.setItem('racerHighScore', String(best));
+        document.getElementById('best').textContent = best;
+      }
+      document.getElementById('ov-title').textContent = 'Crash! 💥';
+      document.getElementById('ov-text').textContent = isHigh ? 'New high score! 🏆' : 'Nice ride! Try again?';
+      os.textContent = 'Score: ' + score;
+    }
     os.classList.remove('hidden');
     document.getElementById('startBtn').textContent = 'Race Again';
     ov.classList.remove('hidden');
@@ -310,22 +382,22 @@
   function update(dt) {
     if (state !== 'playing') return;
 
-    // Speed ramps up over time, capped
+    // Speed ramps up over time, capped (shared world)
     gameSpeed = Math.min(560, gameSpeed + 7 * dt);
     distance += gameSpeed * dt;
-    score = Math.floor(distance / 40);
-    document.getElementById('score').textContent = score;
-
-    // Steering
-    steer = currentSteer();
-    player.x += steer * PLAYER_STEER * dt;
-    var minX = ROAD_LEFT + player.w / 2;
-    var maxX = ROAD_RIGHT - player.w / 2;
-    if (player.x < minX) player.x = minX;
-    if (player.x > maxX) player.x = maxX;
-
-    // Animate road dashes
     dashOffset = (dashOffset + gameSpeed * dt) % 60;
+
+    // Move + score each alive player
+    for (var pi = 0; pi < players.length; pi++) {
+      var p = players[pi];
+      if (!p.alive) continue;
+      p.x += steerForPlayer(p) * PLAYER_STEER * dt;
+      var lo = ROAD_LEFT + p.w / 2, hi = ROAD_RIGHT - p.w / 2;
+      if (p.x < lo) p.x = lo;
+      if (p.x > hi) p.x = hi;
+      p.dist += gameSpeed * dt;
+      p.score = Math.floor(p.dist / 40);
+    }
 
     // Spawn enemies — keep a constant dodgeable gap as speed grows
     spawnTimer -= dt;
@@ -335,18 +407,28 @@
       spawnTimer = (gap / gameSpeed) * (0.75 + Math.random() * 0.6);
     }
 
-    // Move enemies
+    // Move enemies + per-player collision
     for (var i = enemies.length - 1; i >= 0; i--) {
       var en = enemies[i];
       en.y += gameSpeed * dt;
-      en.x += en.wobble; // slight drift
+      en.x += en.wobble;
       if (en.y > H + 70) { enemies.splice(i, 1); continue; }
-      // Collision (shrunk boxes for fairness)
-      if (Math.abs(en.x - player.x) < (en.w + player.w) * 0.42 &&
-          Math.abs(en.y - player.y) < (en.h + player.h) * 0.42) {
-        gameOver();
+      for (var pj = 0; pj < players.length; pj++) {
+        var pl = players[pj];
+        if (!pl.alive) continue;
+        if (Math.abs(en.x - pl.x) < (en.w + pl.w) * 0.42 &&
+            Math.abs(en.y - pl.y) < (en.h + pl.h) * 0.42) {
+          pl.alive = false;
+        }
       }
     }
+
+    // Live scorebar
+    document.getElementById('score').textContent = players[0].score;
+    if (mode === 2) document.getElementById('best').textContent = players[1].score;
+
+    // End when everyone has crashed
+    if (!players.some(function(p){ return p.alive; })) endGame();
   }
 
   function roundRect(x, y, w, h, r) {
@@ -391,22 +473,22 @@
   }
 
   // Top-down motorcycle: front points up
-  function drawBike(x, y) {
+  function drawBike(x, y, c) {
     var h = 48;
     // front + rear wheels along the centerline
     ctx.fillStyle = '#141414';
     roundRect(x-4, y-h/2, 8, 15, 3); ctx.fill();
     roundRect(x-4, y+h/2-15, 8, 15, 3); ctx.fill();
     // frame / body
-    ctx.fillStyle = '#1f6feb';
+    ctx.fillStyle = c.frame;
     roundRect(x-5, y-12, 10, 26, 4); ctx.fill();
     // handlebars near the front
     ctx.fillStyle = '#333';
     roundRect(x-10, y-10, 20, 4, 2); ctx.fill();
     // rider: jacket then helmet (top view)
-    ctx.fillStyle = '#EF233C';
+    ctx.fillStyle = c.jacket;
     roundRect(x-6, y-5, 12, 17, 5); ctx.fill();
-    ctx.fillStyle = '#FFD93D';
+    ctx.fillStyle = c.helmet;
     ctx.beginPath(); ctx.arc(x, y-1, 5, 0, 7); ctx.fill();
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.arc(x, y-2.5, 4.5, Math.PI, 2*Math.PI); ctx.fill(); // visor
@@ -440,9 +522,15 @@
       drawCar(enemies[i].x, enemies[i].y, enemies[i].color);
     }
 
-    // Player
-    drawBike(player.x, player.y);
+    // Players (still-alive bikes)
+    for (var pi = 0; pi < players.length; pi++) {
+      if (players[pi].alive) drawBike(players[pi].x, players[pi].y, players[pi].colors);
+    }
   }
+
+  // Show a bike on the start screen
+  players = [makePlayer(1, W / 2, P1_COLORS)];
+  updateHint();
 
   // ---- Main loop ----
   var lastTime = performance.now();
