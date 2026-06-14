@@ -280,14 +280,20 @@
   }
 
   function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+  }
+
+  function safeEntries(d) {
+    return Array.isArray(d) ? d : [];
   }
 
   function fetchLeaderboard() {
     document.getElementById('lb-list').innerHTML = '<div class="lb-loading">Loading…</div>';
     fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() })
       .then(function(r) { return r.json(); })
-      .then(function(d) { renderLeaderboard(d || []); })
+      .then(function(d) { renderLeaderboard(safeEntries(d)); })
       .catch(function() {
         document.getElementById('lb-list').innerHTML = '<div class="lb-empty">Could not load.</div>';
       });
@@ -301,20 +307,21 @@
     }
     list.innerHTML = entries.map(function(e, i) {
       var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+      var safeScore = Math.floor(Number(e.score)) || 0;
       return '<div class="lb-row">' +
         '<span class="lb-rank">' + medal + '</span>' +
         '<span class="lb-name">' + esc(e.name) + '</span>' +
-        '<span class="lb-score">' + e.score + '</span>' +
+        '<span class="lb-score">' + safeScore + '</span>' +
         '</div>';
     }).join('');
   }
 
   function checkLeaderboard(finalScore) {
-    if (finalScore <= 0) { showStartBtn(); fetchLeaderboard(); return; }
+    if (!Number.isFinite(finalScore) || finalScore <= 0) { showStartBtn(); fetchLeaderboard(); return; }
     fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() })
       .then(function(r) { return r.json(); })
       .then(function(d) {
-        var entries = d || [];
+        var entries = safeEntries(d);
         renderLeaderboard(entries);
         var qualifies = entries.length < 10 || finalScore > entries[entries.length - 1].score;
         if (qualifies) { showNameEntry(finalScore); } else { showStartBtn(); }
@@ -330,18 +337,18 @@
     setTimeout(function() { try { inp.focus(); } catch(ex) {} }, 100);
 
     function doSubmit() {
-      var name = inp.value.trim() || 'Anonymous';
+      var name = inp.value.trim().slice(0, 20) || 'Anonymous';
       ne.style.display = 'none';
       fetch(SB_URL + '/rest/v1/leaderboard', {
         method: 'POST',
         headers: Object.assign({}, sbHeaders(), { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({ game: GAME_KEY, name: name, score: finalScore })
+        body: JSON.stringify({ game: GAME_KEY, name: name, score: Math.floor(finalScore) })
       })
       .then(function() {
         return fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() });
       })
       .then(function(r) { return r.json(); })
-      .then(function(d) { renderLeaderboard(d || []); })
+      .then(function(d) { renderLeaderboard(safeEntries(d)); })
       .catch(function() {})
       .then(function() { showStartBtn(); });
     }
