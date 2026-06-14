@@ -164,6 +164,7 @@
 
   function lockPiece() {
     cellsAbs(piece).forEach(function(c){ if (c.y>=0) grid[c.y][c.x] = COLORS[piece.type]; });
+    sndLock();
     clearLines();
     piece = newPiece();
     if (collides(piece)) gameOver();
@@ -177,12 +178,15 @@
       }
     }
     if (cleared > 0) {
+      var prevLevel = level;
       lines += cleared;
       score += [0,40,100,300,1200][cleared] * level;
       level = 1 + Math.floor(lines/10);
       dropMs = Math.max(120, 700 - (level-1)*60);
       document.getElementById('score').textContent = score;
       document.getElementById('lines').textContent = lines;
+      sndClear(cleared);
+      if (level > prevLevel) setTimeout(sndLevelUp, 280);
     }
   }
 
@@ -216,6 +220,7 @@
 
   function gameOver() {
     state = 'over';
+    sndGameOver();
     if (score > best) {
       best = score;
       localStorage.setItem('blockDropHighScore', String(best));
@@ -275,6 +280,47 @@
   document.getElementById('startBtn').addEventListener('click', startGame);
 
   // === LEADERBOARD ===
+  // === AUDIO ===
+  var _ac = null;
+  function _ctx() {
+    if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (_ac.state === 'suspended') _ac.resume();
+    return _ac;
+  }
+  function playTone(freq, endFreq, dur, type, vol) {
+    try {
+      var c = _ctx(), o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(c.destination);
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, c.currentTime);
+      if (endFreq !== freq) o.frequency.linearRampToValueAtTime(endFreq, c.currentTime + dur);
+      g.gain.setValueAtTime(vol || 0.2, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      o.start(c.currentTime); o.stop(c.currentTime + dur);
+    } catch(ex) {}
+  }
+  function sndLock() { playTone(120, 80, 0.09, 'sine', 0.3); }
+  function sndClear(n) {
+    if (n >= 4) {
+      [523, 659, 784, 1047].forEach(function(f, i) {
+        setTimeout(function() { playTone(f, f, 0.13, 'square', 0.28); }, i * 65);
+      });
+    } else {
+      var start = [0, 330, 440, 523][n];
+      playTone(start, start * 2, 0.2, 'square', 0.22);
+    }
+  }
+  function sndLevelUp() {
+    [523, 659, 784, 1047].forEach(function(f, i) {
+      setTimeout(function() { playTone(f, f, 0.1, 'sine', 0.2); }, i * 70);
+    });
+  }
+  function sndGameOver() {
+    [440, 330, 220, 110].forEach(function(f, i) {
+      setTimeout(function() { playTone(f, f * 0.6, 0.18, 'sawtooth', 0.22); }, i * 110);
+    });
+  }
+
   var SB_URL = 'https://pvuxvjieyhmjwhzsixuz.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2dXh2amlleWhtandoenNpeHV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODUwOTUsImV4cCI6MjA5Njk2MTA5NX0.X9ZSlPpnZZyxILZC4F5JYHG3wVHXTtdyZMqhmdK2jtM';
 
