@@ -254,12 +254,20 @@
 
   function spawnEnemy() {
     var lane = Math.floor(Math.random() * LANES);
-    enemies.push({ x: laneCenter(lane), y: -60, w: 38, h: 54, color: enemyColors[Math.floor(Math.random() * enemyColors.length)], wobble: (Math.random() - 0.5) * 0.4 });
+    var laneL = ROAD_LEFT + LANE_W * lane + 20;
+    var laneR = ROAD_LEFT + LANE_W * (lane + 1) - 20;
+    var startX = laneL + Math.random() * (laneR - laneL);
+    enemies.push({
+      x: startX, y: -60, w: 38, h: 54,
+      color: enemyColors[Math.floor(Math.random() * enemyColors.length)],
+      laneL: laneL, laneR: laneR,
+      tx: laneL + Math.random() * (laneR - laneL)
+    });
   }
 
   function update(dt) {
     if (state !== 'playing') return;
-    gameSpeed = Math.min(560, gameSpeed + 7 * dt);
+    gameSpeed += 7 * dt;
     updateEngine(gameSpeed);
     distance += gameSpeed * dt;
     dashOffset = (dashOffset + gameSpeed * dt) % 60;
@@ -273,7 +281,10 @@
     spawnTimer -= dt;
     if (spawnTimer <= 0) { spawnEnemy(); spawnTimer = (200 / gameSpeed) * (0.75 + Math.random() * 0.6); }
     for (var i = enemies.length - 1; i >= 0; i--) {
-      var en = enemies[i]; en.y += gameSpeed * dt; en.x += en.wobble;
+      var en = enemies[i]; en.y += gameSpeed * dt;
+      var dx = en.tx - en.x;
+      if (Math.abs(dx) < 3) en.tx = en.laneL + Math.random() * (en.laneR - en.laneL);
+      en.x += Math.sign(dx) * Math.min(Math.abs(dx), 60 * dt);
       if (en.y > H + 70) { enemies.splice(i, 1); continue; }
       for (var pj = 0; pj < players.length; pj++) {
         var pl = players[pj]; if (!pl.alive) continue;
@@ -370,7 +381,7 @@
   }
   function updateEngine(spd) {
     if (!_eng || !_ac) return;
-    try { _eng.frequency.setValueAtTime(55 + (spd - 220) / 340 * 90, _ac.currentTime); } catch(ex) {}
+    try { _eng.frequency.setValueAtTime(Math.min(180, 55 + (spd - 220) / 340 * 90), _ac.currentTime); } catch(ex) {}
   }
   function stopEngine() {
     if (!_eng) return;
