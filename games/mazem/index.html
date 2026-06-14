@@ -225,7 +225,8 @@
         frightened: false, eaten: false,
         penTimer: i * 600,
         scatterTimer: 0,
-        mode: 'scatter'
+        mode: 'scatter',
+        lastCell: null
       };
     });
     frightTimer = 0;
@@ -291,44 +292,43 @@
     return true;
   }
 
-  function snapAxis(val, dir) {
-    if (dir === 0) return val;
-    var cell = CELL;
-    var mod = ((val % cell) + cell) % cell;
-    var threshold = 3;
-    if (Math.abs(mod - cell/2) <= threshold) return Math.round(val / cell) * cell + cell/2;
-    return val;
+  function snapAxis(val, shouldSnap) {
+    if (!shouldSnap) return val;
+    var half = CELL / 2;
+    var nearest = Math.round((val - half) / CELL) * CELL + half;
+    return (Math.abs(val - nearest) <= 5) ? nearest : val;
   }
 
   // ── PLAYER UPDATE ──────────────────────────────────────────────────────────────
   function updatePlayer(dt) {
     var spd = player.speed * (dt / 16.67);
 
-    // Try queued direction
-    var ny = snapAxis(player.y, player.ndx !== 0 ? 0 : player.ndy);
-    var nx = snapAxis(player.x, player.ndy !== 0 ? 0 : player.ndx);
-    if (canMove(nx, ny, player.ndx * spd, player.ndy * spd)) {
-      player.dx = player.ndx; player.dy = player.ndy;
-      player.x = nx; player.y = ny;
+    // Try queued direction — snap the perpendicular axis to allow turning
+    if (player.ndx !== 0 || player.ndy !== 0) {
+      var sx = (player.ndy !== 0) ? snapAxis(player.x, true) : player.x;
+      var sy = (player.ndx !== 0) ? snapAxis(player.y, true) : player.y;
+      if (canMove(sx, sy, player.ndx * spd, player.ndy * spd)) {
+        player.dx = player.ndx; player.dy = player.ndy;
+        player.x = sx; player.y = sy;
+      }
     }
 
     // Move in current direction
     if (player.dx !== 0 || player.dy !== 0) {
-      var mx = player.dx * spd, my = player.dy * spd;
-      if (canMove(player.x, player.y, mx, my)) {
-        player.x += mx; player.y += my;
+      if (canMove(player.x, player.y, player.dx * spd, player.dy * spd)) {
+        player.x += player.dx * spd;
+        player.y += player.dy * spd;
       } else {
-        // snap to grid
         var cc = cellOf(player.x, player.y);
-        var cen = centerOf(cc.c, cc.r);
-        player.x = cen.x; player.y = cen.y;
+        player.x = cc.c * CELL + CELL / 2;
+        player.y = cc.r * CELL + CELL / 2;
         player.dx = 0; player.dy = 0;
       }
     }
 
     // Tunnel wrap
-    if (player.x < 0) player.x = W;
-    if (player.x > W) player.x = 0;
+    if (player.x < -CELL / 2) player.x = W + CELL / 2;
+    if (player.x > W + CELL / 2) player.x = -CELL / 2;
 
     // Mouth animation
     player.mouthAngle += player.mouthDir * 0.08;
@@ -377,13 +377,15 @@
   function updateGhost(g, i, dt) {
     if (g.penTimer > 0) { g.penTimer -= dt; return; }
     if (g.eaten) {
-      // return to ghost house
       var home = centerOf(ghostStarts[i].x, ghostStarts[i].y);
-      var dx = home.x - g.x, dy = home.y - g.y;
-      var dist = Math.sqrt(dx*dx+dy*dy);
-      if (dist < 3) { g.x=home.x; g.y=home.y; g.eaten=false; g.frightened=false; g.penTimer=500; return; }
+      var hdx = home.x - g.x, hdy = home.y - g.y;
+      var dist = Math.sqrt(hdx*hdx+hdy*hdy);
+      if (dist < 3) {
+        g.x=home.x; g.y=home.y; g.eaten=false; g.frightened=false;
+        g.penTimer=500; g.lastCell=null; return;
+      }
       var spd2 = g.speed * 1.8 * (dt/16.67);
-      g.x += (dx/dist)*spd2; g.y += (dy/dist)*spd2;
+      g.x += (hdx/dist)*spd2; g.y += (hdy/dist)*spd2;
       return;
     }
 
@@ -391,32 +393,35 @@
     var gc = cellOf(g.x, g.y);
     var cenX = gc.c*CELL+CELL/2, cenY = gc.r*CELL+CELL/2;
     var tol = spd + 1;
+    var cellKey = gc.c + ',' + gc.r;
 
-    // Only make turn decisions at cell centers
-    if (Math.abs(g.x - cenX) <= tol && Math.abs(g.y - cenY) <= tol) {
+    // Only make a turn decision once per cell center crossing
+    if (Math.abs(g.x - cenX) <= tol && Math.abs(g.y - cenY) <= tol && g.lastCell !== cellKey) {
+      g.lastCell = cellKey;
       g.x = cenX; g.y = cenY;
+
       var target = g.frightened
         ? {c: Math.floor(Math.random()*COLS), r: Math.floor(Math.random()*ROWS)}
         : ghostTarget(g, i);
 
-      var best = null, bestDist = Infinity;
+      var bestDir = null, bestDist = Infinity;
       for (var d = 0; d < DIRS.length; d++) {
         var dd = DIRS[d];
-        if (dd.dx === -g.dx && dd.dy === -g.dy) continue; // no 180
+        if (dd.dx === -g.dx && dd.dy === -g.dy) continue;
         var nc = wrap(gc.c + dd.dx), nr = gc.r + dd.dy;
         if (isWall(nc, nr)) continue;
         if (nr < 0 || nr >= ROWS) continue;
-        var dist = Math.pow(nc - target.c, 2) + Math.pow(nr - target.r, 2);
-        if (g.frightened) dist = Math.random() * 100; // random when frightened
-        if (dist < bestDist) { bestDist = dist; best = dd; }
+        var gdist = g.frightened
+          ? Math.random() * 100
+          : Math.pow(nc - target.c, 2) + Math.pow(nr - target.r, 2);
+        if (gdist < bestDist) { bestDist = gdist; bestDir = dd; }
       }
-      if (best) { g.dx = best.dx; g.dy = best.dy; }
+      if (bestDir) { g.dx = bestDir.dx; g.dy = bestDir.dy; }
     }
 
     g.x += g.dx * spd; g.y += g.dy * spd;
     if (g.x < 0) g.x = W; if (g.x > W) g.x = 0;
 
-    // Scatter timer
     g.scatterTimer += dt;
     if (g.scatterTimer < 3000) g.mode = 'scatter';
     else if (g.scatterTimer < 10000) g.mode = 'chase';
