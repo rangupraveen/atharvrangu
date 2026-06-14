@@ -45,6 +45,7 @@
   .game-col { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
   .lb-panel { flex: 0 0 200px; background: white; border: 4px solid var(--text); border-radius: 16px; box-shadow: 6px 6px 0 var(--text); padding: 14px 12px; margin-top: 100px; }
   .lb-panel-title { font-family: 'Fredoka One', cursive; font-size: 16px; text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 3px solid var(--text); }
+  .lb-panel-title-week { margin-top: 14px; padding-top: 10px; border-top: 2px solid var(--text); border-bottom: none; padding-bottom: 6px; }
   .lb-row { display: flex; align-items: center; gap: 5px; padding: 5px 2px; border-bottom: 1px solid #f0f0f0; font-size: 12px; font-weight: 700; }
   .lb-row:last-child { border-bottom: none; }
   .lb-rank { flex: 0 0 28px; font-family: 'Fredoka One', cursive; font-size: 13px; }
@@ -102,8 +103,10 @@
   </div>
 
   <div class="lb-panel">
-    <div class="lb-panel-title">🏆 Top 10</div>
-    <div id="lb-list"><div class="lb-loading">Loading…</div></div>
+    <div class="lb-panel-title">🏆 Daily Top 10</div>
+    <div id="lb-list-daily"><div class="lb-loading">Loading…</div></div>
+    <div class="lb-panel-title lb-panel-title-week">📅 Weekly Top 10</div>
+    <div id="lb-list-weekly"><div class="lb-loading">Loading…</div></div>
   </div>
 </div>
 
@@ -225,7 +228,7 @@
       os.classList.remove('hidden');
       document.getElementById('startBtn').textContent = 'Race Again';
       document.getElementById('overlay').classList.remove('hidden');
-      fetchLeaderboard();
+      fetchBothBoards();
     } else {
       var score = players[0].score;
       if (score > best) {
@@ -348,18 +351,50 @@
     return Array.isArray(d) ? d : [];
   }
 
-  function fetchLeaderboard() {
-    document.getElementById('lb-list').innerHTML = '<div class="lb-loading">Loading…</div>';
-    fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() })
-      .then(function(r) { return r.json(); })
-      .then(function(d) { renderLeaderboard(safeEntries(d)); })
-      .catch(function() {
-        document.getElementById('lb-list').innerHTML = '<div class="lb-empty">Could not load.</div>';
-      });
+  function nyOffsetMs(date) {
+    var utc = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+    var ny  = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    return ny - utc;
   }
 
-  function renderLeaderboard(entries) {
-    var list = document.getElementById('lb-list');
+  function getDailyStartISO() {
+    var now = new Date();
+    var off = nyOffsetMs(now);
+    var nyMs = now.getTime() + off;
+    var dayStartNy = nyMs - (nyMs % 86400000);
+    return new Date(dayStartNy - off).toISOString();
+  }
+
+  function getWeeklyStartISO() {
+    var now = new Date();
+    var off = nyOffsetMs(now);
+    var nyMs = now.getTime() + off;
+    var dayStartNy = nyMs - (nyMs % 86400000);
+    var dow = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(now);
+    var days = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[dow] || 0;
+    var sunStartNy = dayStartNy - days * 86400000;
+    var off2 = nyOffsetMs(new Date(sunStartNy - off));
+    return new Date(sunStartNy - off2).toISOString();
+  }
+
+  function fetchBothBoards() {
+    document.getElementById('lb-list-daily').innerHTML = '<div class="lb-loading">Loading…</div>';
+    document.getElementById('lb-list-weekly').innerHTML = '<div class="lb-loading">Loading…</div>';
+    var base = SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10';
+    return Promise.all([
+      fetch(base + '&created_at=gte.' + getDailyStartISO(), { headers: sbHeaders() }).then(function(r) { return r.json(); }),
+      fetch(base + '&created_at=gte.' + getWeeklyStartISO(), { headers: sbHeaders() }).then(function(r) { return r.json(); })
+    ]).then(function(res) {
+      renderLeaderboard(safeEntries(res[0]), 'lb-list-daily');
+      renderLeaderboard(safeEntries(res[1]), 'lb-list-weekly');
+    }).catch(function() {
+      document.getElementById('lb-list-daily').innerHTML = '<div class="lb-empty">Could not load.</div>';
+      document.getElementById('lb-list-weekly').innerHTML = '<div class="lb-empty">Could not load.</div>';
+    });
+  }
+
+  function renderLeaderboard(entries, listId) {
+    var list = document.getElementById(listId);
     if (!entries.length) {
       list.innerHTML = '<div class="lb-empty">No scores yet!<br>Be the first 🎮</div>';
       return;
@@ -376,16 +411,20 @@
   }
 
   function checkLeaderboard(finalScore) {
-    if (!Number.isFinite(finalScore) || finalScore <= 0) { showStartBtn(); fetchLeaderboard(); return; }
-    fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() })
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        var entries = safeEntries(d);
-        renderLeaderboard(entries);
-        var qualifies = entries.length < 10 || finalScore > entries[entries.length - 1].score;
-        if (qualifies) { showNameEntry(finalScore); } else { showStartBtn(); }
-      })
-      .catch(function() { showStartBtn(); });
+    if (!Number.isFinite(finalScore) || finalScore <= 0) { showStartBtn(); fetchBothBoards(); return; }
+    var base = SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10';
+    Promise.all([
+      fetch(base + '&created_at=gte.' + getDailyStartISO(), { headers: sbHeaders() }).then(function(r) { return r.json(); }),
+      fetch(base + '&created_at=gte.' + getWeeklyStartISO(), { headers: sbHeaders() }).then(function(r) { return r.json(); })
+    ]).then(function(res) {
+      var daily = safeEntries(res[0]);
+      var weekly = safeEntries(res[1]);
+      renderLeaderboard(daily, 'lb-list-daily');
+      renderLeaderboard(weekly, 'lb-list-weekly');
+      var inDaily = daily.length < 10 || finalScore > daily[daily.length - 1].score;
+      var inWeekly = weekly.length < 10 || finalScore > weekly[weekly.length - 1].score;
+      if (inDaily || inWeekly) { showNameEntry(finalScore); } else { showStartBtn(); }
+    }).catch(function() { showStartBtn(); });
   }
 
   function showNameEntry(finalScore) {
@@ -403,11 +442,7 @@
         headers: Object.assign({}, sbHeaders(), { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
         body: JSON.stringify({ game: GAME_KEY, name: name, score: Math.floor(finalScore) })
       })
-      .then(function() {
-        return fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() });
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(d) { renderLeaderboard(safeEntries(d)); })
+      .then(function() { return fetchBothBoards(); })
       .catch(function() {})
       .then(function() { showStartBtn(); });
     }
@@ -416,7 +451,7 @@
     document.getElementById('nm-skip').onclick = function() {
       ne.style.display = 'none';
       showStartBtn();
-      fetchLeaderboard();
+      fetchBothBoards();
     };
     inp.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); doSubmit(); } };
   }
@@ -425,7 +460,7 @@
     document.getElementById('startBtn').style.display = '';
   }
 
-  fetchLeaderboard();
+  fetchBothBoards();
 
   players = [makePlayer(1, W / 2, P1_COLORS)];
   updateHint();
