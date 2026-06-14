@@ -261,15 +261,22 @@
   document.getElementById('startBtn').addEventListener('click', startGame);
 
   // === LEADERBOARD ===
+  var SB_URL = 'https://pvuxvjieyhmjwhzsixuz.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2dXh2amlleWhtandoenNpeHV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODUwOTUsImV4cCI6MjA5Njk2MTA5NX0.X9ZSlPpnZZyxILZC4F5JYHG3wVHXTtdyZMqhmdK2jtM';
+
+  function sbHeaders() {
+    return { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+  }
+
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   function fetchLeaderboard() {
     document.getElementById('lb-list').innerHTML = '<div class="lb-loading">Loading…</div>';
-    fetch('/api/leaderboard?game=' + GAME_KEY)
+    fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() })
       .then(function(r) { return r.json(); })
-      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .then(function(d) { renderLeaderboard(d || []); })
       .catch(function() {
         document.getElementById('lb-list').innerHTML = '<div class="lb-empty">Could not load.</div>';
       });
@@ -293,10 +300,10 @@
 
   function checkLeaderboard(finalScore) {
     if (finalScore <= 0) { showStartBtn(); fetchLeaderboard(); return; }
-    fetch('/api/leaderboard?game=' + GAME_KEY)
+    fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() })
       .then(function(r) { return r.json(); })
       .then(function(d) {
-        var entries = d.entries || [];
+        var entries = d || [];
         renderLeaderboard(entries);
         var qualifies = entries.length < 10 || finalScore > entries[entries.length - 1].score;
         if (qualifies) { showNameEntry(finalScore); } else { showStartBtn(); }
@@ -314,13 +321,16 @@
     function doSubmit() {
       var name = inp.value.trim() || 'Anonymous';
       ne.style.display = 'none';
-      fetch('/api/leaderboard', {
+      fetch(SB_URL + '/rest/v1/leaderboard', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: Object.assign({}, sbHeaders(), { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
         body: JSON.stringify({ game: GAME_KEY, name: name, score: finalScore })
       })
+      .then(function() {
+        return fetch(SB_URL + '/rest/v1/leaderboard?game=eq.' + GAME_KEY + '&order=score.desc&limit=10', { headers: sbHeaders() });
+      })
       .then(function(r) { return r.json(); })
-      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .then(function(d) { renderLeaderboard(d || []); })
       .catch(function() {})
       .then(function() { showStartBtn(); });
     }
