@@ -7,238 +7,130 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --yellow: #FFD93D;
-    --orange: #FF6B35;
-    --green: #06D6A0;
-    --blue: #4CC9F0;
-    --red: #EF233C;
-    --bg: #FFF8F0;
-    --text: #1A1A2E;
+    --yellow: #FFD93D; --orange: #FF6B35; --green: #06D6A0; --blue: #4CC9F0;
+    --red: #EF233C; --bg: #FFF8F0; --text: #1A1A2E;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    -webkit-user-select: none;
-    user-select: none;
+    font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 16px; display: flex; flex-direction: column; align-items: center;
+    -webkit-user-select: none; user-select: none;
   }
   a { text-decoration: none; color: inherit; }
-
-  .topbar {
-    width: 100%;
-    max-width: 420px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .back-link {
-    font-family: 'Fredoka One', cursive;
-    font-size: 14px;
-    color: var(--orange);
-    border: 3px solid var(--text);
-    border-radius: 12px;
-    padding: 6px 14px;
-    background: white;
-    box-shadow: 3px 3px 0 var(--text);
-  }
-  .title {
-    font-family: 'Fredoka One', cursive;
-    font-size: 22px;
-    text-shadow: 2px 2px 0 var(--yellow);
-  }
-
-  .scorebar {
-    width: 100%;
-    max-width: 420px;
-    display: flex;
-    justify-content: space-between;
-    font-family: 'Fredoka One', cursive;
-    font-size: 16px;
-    margin-bottom: 10px;
-    padding: 0 4px;
-  }
+  .topbar { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .back-link { font-family: 'Fredoka One', cursive; font-size: 14px; color: var(--orange); border: 3px solid var(--text); border-radius: 12px; padding: 6px 14px; background: white; box-shadow: 3px 3px 0 var(--text); }
+  .title { font-family: 'Fredoka One', cursive; font-size: 22px; text-shadow: 2px 2px 0 var(--yellow); }
+  .scorebar { width: 100%; max-width: 420px; display: flex; justify-content: space-between; font-family: 'Fredoka One', cursive; font-size: 16px; margin-bottom: 10px; padding: 0 4px; }
   .scorebar .label { color: #888; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
   .scorebar .val { color: var(--orange); }
   .scorebar .val.best { color: var(--green); }
-
-  .stage {
-    position: relative;
-    width: 100%;
-    max-width: 420px;
-  }
-  canvas {
-    display: block;
-    width: 100%;
-    height: auto;
-    border: 4px solid var(--text);
-    border-radius: 16px;
-    box-shadow: 6px 6px 0 var(--text);
-    background: #3a7d44;
-    touch-action: none;
-  }
-
-  /* OVERLAY (start / game over) */
-  .overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(26,26,46,0.82);
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: white;
-    padding: 24px;
-  }
+  .stage { position: relative; width: 100%; max-width: 420px; }
+  canvas { display: block; width: 100%; height: auto; border: 4px solid var(--text); border-radius: 16px; box-shadow: 6px 6px 0 var(--text); background: #3a7d44; touch-action: none; }
+  .overlay { position: absolute; inset: 0; background: rgba(26,26,46,0.82); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white; padding: 24px; }
   .overlay.hidden { display: none; }
-  .overlay h2 {
-    font-family: 'Fredoka One', cursive;
-    font-size: 34px;
-    margin-bottom: 8px;
-    color: var(--yellow);
-  }
+  .overlay h2 { font-family: 'Fredoka One', cursive; font-size: 34px; margin-bottom: 8px; color: var(--yellow); }
   .overlay p { font-size: 15px; font-weight: 700; margin-bottom: 6px; max-width: 280px; }
-  .overlay .big-score {
-    font-family: 'Fredoka One', cursive;
-    font-size: 40px;
-    color: white;
-    margin: 6px 0 14px;
-  }
-  .btn {
-    background: var(--orange);
-    color: white;
-    border: 3px solid white;
-    border-radius: 14px;
-    padding: 12px 34px;
-    font-family: 'Fredoka One', cursive;
-    font-size: 20px;
-    cursor: pointer;
-    box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
-  }
+  .overlay .big-score { font-family: 'Fredoka One', cursive; font-size: 40px; color: white; margin: 6px 0 10px; }
+  .btn { background: var(--orange); color: white; border: 3px solid white; border-radius: 14px; padding: 12px 34px; font-family: 'Fredoka One', cursive; font-size: 20px; cursor: pointer; box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
   .btn:active { transform: translateY(2px); }
-  .mode-btn {
-    background: white;
-    color: var(--text);
-    border: 3px solid var(--text);
-    border-radius: 12px;
-    padding: 8px 20px;
-    font-family: 'Fredoka One', cursive;
-    font-size: 15px;
-    cursor: pointer;
-    margin-bottom: 14px;
-    box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
-  }
+  .mode-btn { background: white; color: var(--text); border: 3px solid var(--text); border-radius: 12px; padding: 8px 20px; font-family: 'Fredoka One', cursive; font-size: 15px; cursor: pointer; margin-bottom: 14px; box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
   .mode-btn:active { transform: translateY(2px); }
-
-  /* TOUCH CONTROLS */
-  .controls {
-    width: 100%;
-    max-width: 420px;
-    display: flex;
-    gap: 14px;
-    margin-top: 14px;
-  }
-  .ctrl-btn {
-    flex: 1;
-    background: white;
-    border: 4px solid var(--text);
-    border-radius: 16px;
-    box-shadow: 4px 4px 0 var(--text);
-    font-size: 34px;
-    padding: 16px 0;
-    text-align: center;
-    cursor: pointer;
-    touch-action: none;
-  }
+  .controls { width: 100%; max-width: 420px; display: flex; gap: 14px; margin-top: 14px; }
+  .ctrl-btn { flex: 1; background: white; border: 4px solid var(--text); border-radius: 16px; box-shadow: 4px 4px 0 var(--text); font-size: 34px; padding: 16px 0; text-align: center; cursor: pointer; touch-action: none; }
   .ctrl-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--text); }
+  .hint { margin-top: 12px; font-size: 13px; font-weight: 700; color: #999; text-align: center; max-width: 420px; }
 
-  .hint {
-    margin-top: 12px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #999;
-    text-align: center;
-    max-width: 420px;
+  /* === LEADERBOARD LAYOUT === */
+  .game-wrapper { display: flex; gap: 20px; align-items: flex-start; justify-content: center; width: 100%; max-width: 660px; }
+  .game-col { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
+  .lb-panel { flex: 0 0 200px; background: white; border: 4px solid var(--text); border-radius: 16px; box-shadow: 6px 6px 0 var(--text); padding: 14px 12px; margin-top: 100px; }
+  .lb-panel-title { font-family: 'Fredoka One', cursive; font-size: 16px; text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 3px solid var(--text); }
+  .lb-row { display: flex; align-items: center; gap: 5px; padding: 5px 2px; border-bottom: 1px solid #f0f0f0; font-size: 12px; font-weight: 700; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { flex: 0 0 28px; font-family: 'Fredoka One', cursive; font-size: 13px; }
+  .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .lb-score { color: var(--orange); font-family: 'Fredoka One', cursive; font-size: 13px; }
+  .lb-empty, .lb-loading { color: #bbb; font-size: 12px; text-align: center; padding: 20px 4px; line-height: 1.6; }
+  /* Name entry inside overlay */
+  .name-entry { width: 100%; text-align: center; margin: 4px 0 8px; display: none; }
+  .name-entry .ne-label { font-size: 13px; color: var(--yellow); font-weight: 800; margin-bottom: 8px; }
+  .name-entry input { width: 190px; padding: 8px 12px; border-radius: 10px; border: 3px solid white; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; background: rgba(255,255,255,0.15); color: white; outline: none; text-align: center; display: block; margin: 0 auto 10px; }
+  .name-entry input::placeholder { color: rgba(255,255,255,0.5); }
+  .ne-btns { display: flex; gap: 8px; justify-content: center; }
+  .ne-btn { padding: 8px 20px !important; font-size: 15px !important; line-height: 1 !important; }
+  .ne-btn-skip { background: rgba(255,255,255,0.2) !important; }
+  @media (max-width: 680px) {
+    .game-wrapper { flex-direction: column; align-items: center; }
+    .lb-panel { flex: none; width: 100%; max-width: 420px; margin-top: 16px; }
   }
 </style>
 </head>
 <body>
+<div class="game-wrapper">
+  <div class="game-col">
+    <div class="topbar">
+      <a href="/games/" class="back-link">&larr; Games</a>
+      <span class="title">Highway Racer 🏍️</span>
+    </div>
+    <div class="scorebar">
+      <div><span class="label" id="label1">Score</span> <span class="val" id="score">0</span></div>
+      <div><span class="label" id="label2">Best</span> <span class="val best" id="best">0</span></div>
+    </div>
+    <div class="stage">
+      <canvas id="game" width="400" height="600"></canvas>
+      <div class="overlay" id="overlay">
+        <h2 id="ov-title">Highway Racer</h2>
+        <p id="ov-text">Dodge the traffic and ride as far as you can!</p>
+        <div class="big-score hidden" id="ov-score"></div>
+        <div class="name-entry" id="name-entry">
+          <div class="ne-label">🏆 You made Top 10!</div>
+          <input type="text" id="nm-input" maxlength="20" placeholder="Your name" autocomplete="off">
+          <div class="ne-btns">
+            <button class="btn ne-btn" id="nm-submit">Save</button>
+            <button class="btn ne-btn ne-btn-skip" id="nm-skip">Skip</button>
+          </div>
+        </div>
+        <button class="mode-btn" id="modeBtn">👤 1 Player</button>
+        <button class="btn" id="startBtn">Start Race</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="ctrl-btn" id="leftBtn">◀</div>
+      <div class="ctrl-btn" id="rightBtn">▶</div>
+    </div>
+    <p class="hint" id="hint">Use ◀ ▶ buttons, arrow keys, or A / D to steer. Tap the left or right side of the road too!</p>
+  </div>
 
-<div class="topbar">
-  <a href="/games/" class="back-link">&larr; Games</a>
-  <span class="title">Highway Racer 🏍️</span>
-</div>
-
-<div class="scorebar">
-  <div><span class="label" id="label1">Score</span> <span class="val" id="score">0</span></div>
-  <div><span class="label" id="label2">Best</span> <span class="val best" id="best">0</span></div>
-</div>
-
-<div class="stage">
-  <canvas id="game" width="400" height="600"></canvas>
-  <div class="overlay" id="overlay">
-    <h2 id="ov-title">Highway Racer</h2>
-    <p id="ov-text">Dodge the traffic and ride as far as you can!</p>
-    <div class="big-score hidden" id="ov-score"></div>
-    <button class="mode-btn" id="modeBtn">👤 1 Player</button>
-    <button class="btn" id="startBtn">Start Race</button>
+  <div class="lb-panel">
+    <div class="lb-panel-title">🏆 Top 10</div>
+    <div id="lb-list"><div class="lb-loading">Loading…</div></div>
   </div>
 </div>
-
-<div class="controls">
-  <div class="ctrl-btn" id="leftBtn">◀</div>
-  <div class="ctrl-btn" id="rightBtn">▶</div>
-</div>
-
-<p class="hint" id="hint">Use ◀ ▶ buttons, arrow keys, or A / D to steer. Tap the left or right side of the road too!</p>
 
 <script>
 (function() {
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
-  var W = canvas.width;   // 400
-  var H = canvas.height;  // 600
+  var W = canvas.width, H = canvas.height;
+  var GAME_KEY = 'racer';
 
-  // Road layout
-  var ROAD_LEFT = 50;
-  var ROAD_RIGHT = W - 50;
-  var ROAD_WIDTH = ROAD_RIGHT - ROAD_LEFT;
-  var LANES = 3;
-  var LANE_W = ROAD_WIDTH / LANES;
-
+  var ROAD_LEFT = 50, ROAD_RIGHT = W - 50, ROAD_WIDTH = ROAD_RIGHT - ROAD_LEFT;
+  var LANES = 3, LANE_W = ROAD_WIDTH / LANES;
   function laneCenter(i) { return ROAD_LEFT + LANE_W * (i + 0.5); }
 
-  // Players
-  var PLAYER_STEER = 360; // px per second
-  var PLAYER_Y = H - 90, PW = 38, PH = 54;
+  var PLAYER_STEER = 360, PLAYER_Y = H - 90, PW = 38, PH = 54;
   var P1_COLORS = { frame:'#1f6feb', jacket:'#EF233C', helmet:'#FFD93D' };
   var P2_COLORS = { frame:'#06D6A0', jacket:'#FF6B35', helmet:'#FFFFFF' };
-  var mode = 1;        // 1 or 2 players
-  var players = [];
-
-  // Enemy vehicles (top-down cars in varied colors)
+  var mode = 1, players = [];
   var enemyColors = ['#EF233C','#4CC9F0','#06D6A0','#FF6B35','#7B5EA7','#FF6B9D','#FFD93D'];
   var enemies = [];
-
-  // Game state
-  var state = 'start'; // start | playing | over
-  var gameSpeed = 220;
-  var distance = 0;
+  var state = 'start', gameSpeed = 220, distance = 0;
   var best = parseInt(localStorage.getItem('racerHighScore') || '0', 10);
-  var spawnTimer = 0;
-  var dashOffset = 0;
+  var spawnTimer = 0, dashOffset = 0;
+  var keys = {}, canvasTap = 0;
 
   document.getElementById('best').textContent = best;
 
-  // Mode toggle
   var modeBtn = document.getElementById('modeBtn');
   modeBtn.addEventListener('click', function() {
     mode = mode === 1 ? 2 : 1;
@@ -246,14 +138,11 @@
     updateHint();
   });
   function updateHint() {
-    var hint = document.getElementById('hint');
-    hint.innerHTML = mode === 2
+    document.getElementById('hint').innerHTML = mode === 2
       ? 'Player 1: arrow keys &nbsp;•&nbsp; Player 2: A / D keys — both race at once!'
       : 'Use ◀ ▶ buttons, arrow keys, or A / D to steer. Tap the left or right side too!';
   }
 
-  // ---- Input ----
-  var keys = {};
   window.addEventListener('keydown', function(e) {
     if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].indexOf(e.key) >= 0) e.preventDefault();
     keys[e.key.toLowerCase()] = true;
@@ -268,17 +157,12 @@
     el.addEventListener('pointercancel', function() { el._held = false; });
     el._dir = dir;
   }
-  var leftBtn = document.getElementById('leftBtn');
-  var rightBtn = document.getElementById('rightBtn');
-  bindHold(leftBtn, -1);
-  bindHold(rightBtn, 1);
+  var leftBtn = document.getElementById('leftBtn'), rightBtn = document.getElementById('rightBtn');
+  bindHold(leftBtn, -1); bindHold(rightBtn, 1);
 
-  // Tap halves of the canvas
-  var canvasTap = 0;
   canvas.addEventListener('pointerdown', function(e) {
     var rect = canvas.getBoundingClientRect();
-    var rx = (e.clientX - rect.left) / rect.width;
-    canvasTap = rx < 0.5 ? -1 : 1;
+    canvasTap = (e.clientX - rect.left) / rect.width < 0.5 ? -1 : 1;
   });
   canvas.addEventListener('pointerup', function() { canvasTap = 0; });
   canvas.addEventListener('pointerleave', function() { canvasTap = 0; });
@@ -286,32 +170,24 @@
   function steerForPlayer(p) {
     var s = 0;
     if (mode === 2 && p.id === 2) {
-      // Player 2: A / D only
-      if (keys['a']) s -= 1;
-      if (keys['d']) s += 1;
+      if (keys['a']) s -= 1; if (keys['d']) s += 1;
     } else {
-      // Player 1 (and solo): arrows + touch + tap (and A/D in solo)
       if (keys['arrowleft'] || (mode === 1 && keys['a'])) s -= 1;
       if (keys['arrowright'] || (mode === 1 && keys['d'])) s += 1;
-      if (leftBtn._held) s -= 1;
-      if (rightBtn._held) s += 1;
+      if (leftBtn._held) s -= 1; if (rightBtn._held) s += 1;
       s += canvasTap;
     }
     return Math.max(-1, Math.min(1, s));
   }
 
-  // ---- Game flow ----
   function makePlayer(id, x, colors) {
     return { id:id, x:x, y:PLAYER_Y, w:PW, h:PH, alive:true, dist:0, score:0, colors:colors };
   }
 
   function startGame() {
-    state = 'playing';
-    enemies = [];
-    gameSpeed = 220;
-    distance = 0;
-    spawnTimer = 0.6;
-    players = [];
+    document.getElementById('name-entry').style.display = 'none';
+    document.getElementById('startBtn').style.display = '';
+    state = 'playing'; enemies = []; gameSpeed = 220; distance = 0; spawnTimer = 0.6; players = [];
     if (mode === 2) {
       players.push(makePlayer(1, ROAD_LEFT + ROAD_WIDTH * 0.33, P1_COLORS));
       players.push(makePlayer(2, ROAD_LEFT + ROAD_WIDTH * 0.67, P2_COLORS));
@@ -328,8 +204,7 @@
       document.getElementById('label1').textContent = 'P1';
       document.getElementById('label2').textContent = 'P2';
       sEl.textContent = '0'; bEl.textContent = '0';
-      sEl.style.color = P1_COLORS.frame;
-      bEl.style.color = P2_COLORS.frame;
+      sEl.style.color = P1_COLORS.frame; bEl.style.color = P2_COLORS.frame;
     } else {
       document.getElementById('label1').textContent = 'Score';
       document.getElementById('label2').textContent = 'Best';
@@ -340,7 +215,6 @@
 
   function endGame() {
     state = 'over';
-    var ov = document.getElementById('overlay');
     var os = document.getElementById('ov-score');
     if (mode === 2) {
       var p1 = players[0].score, p2 = players[1].score;
@@ -348,195 +222,201 @@
       document.getElementById('ov-text').textContent =
         p1 > p2 ? '🏆 Player 1 wins!' : p2 > p1 ? '🏆 Player 2 wins!' : "It's a tie! 🤝";
       os.textContent = 'P1: ' + p1 + '   •   P2: ' + p2;
+      os.classList.remove('hidden');
+      document.getElementById('startBtn').textContent = 'Race Again';
+      document.getElementById('overlay').classList.remove('hidden');
+      fetchLeaderboard();
     } else {
       var score = players[0].score;
-      var isHigh = score > best && score > 0;
       if (score > best) {
         best = score;
         localStorage.setItem('racerHighScore', String(best));
         document.getElementById('best').textContent = best;
       }
       document.getElementById('ov-title').textContent = 'Crash! 💥';
-      document.getElementById('ov-text').textContent = isHigh ? 'New high score! 🏆' : 'Nice ride! Try again?';
+      document.getElementById('ov-text').textContent = score >= best && score > 0 ? 'New high score! 🏆' : 'Nice ride! Try again?';
       os.textContent = 'Score: ' + score;
+      os.classList.remove('hidden');
+      document.getElementById('startBtn').textContent = 'Race Again';
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('overlay').classList.remove('hidden');
+      checkLeaderboard(score);
     }
-    os.classList.remove('hidden');
-    document.getElementById('startBtn').textContent = 'Race Again';
-    ov.classList.remove('hidden');
   }
 
   document.getElementById('startBtn').addEventListener('click', startGame);
 
   function spawnEnemy() {
     var lane = Math.floor(Math.random() * LANES);
-    enemies.push({
-      x: laneCenter(lane),
-      y: -60,
-      w: 38,
-      h: 54,
-      color: enemyColors[Math.floor(Math.random() * enemyColors.length)],
-      wobble: (Math.random() - 0.5) * 0.4
-    });
+    enemies.push({ x: laneCenter(lane), y: -60, w: 38, h: 54, color: enemyColors[Math.floor(Math.random() * enemyColors.length)], wobble: (Math.random() - 0.5) * 0.4 });
   }
 
   function update(dt) {
     if (state !== 'playing') return;
-
-    // Speed ramps up over time, capped (shared world)
     gameSpeed = Math.min(560, gameSpeed + 7 * dt);
     distance += gameSpeed * dt;
     dashOffset = (dashOffset + gameSpeed * dt) % 60;
-
-    // Move + score each alive player
     for (var pi = 0; pi < players.length; pi++) {
-      var p = players[pi];
-      if (!p.alive) continue;
+      var p = players[pi]; if (!p.alive) continue;
       p.x += steerForPlayer(p) * PLAYER_STEER * dt;
       var lo = ROAD_LEFT + p.w / 2, hi = ROAD_RIGHT - p.w / 2;
-      if (p.x < lo) p.x = lo;
-      if (p.x > hi) p.x = hi;
-      p.dist += gameSpeed * dt;
-      p.score = Math.floor(p.dist / 40);
+      if (p.x < lo) p.x = lo; if (p.x > hi) p.x = hi;
+      p.dist += gameSpeed * dt; p.score = Math.floor(p.dist / 40);
     }
-
-    // Spawn enemies — keep a constant dodgeable gap as speed grows
     spawnTimer -= dt;
-    if (spawnTimer <= 0) {
-      spawnEnemy();
-      var gap = 200; // desired pixel gap
-      spawnTimer = (gap / gameSpeed) * (0.75 + Math.random() * 0.6);
-    }
-
-    // Move enemies + per-player collision
+    if (spawnTimer <= 0) { spawnEnemy(); spawnTimer = (200 / gameSpeed) * (0.75 + Math.random() * 0.6); }
     for (var i = enemies.length - 1; i >= 0; i--) {
-      var en = enemies[i];
-      en.y += gameSpeed * dt;
-      en.x += en.wobble;
+      var en = enemies[i]; en.y += gameSpeed * dt; en.x += en.wobble;
       if (en.y > H + 70) { enemies.splice(i, 1); continue; }
       for (var pj = 0; pj < players.length; pj++) {
-        var pl = players[pj];
-        if (!pl.alive) continue;
-        if (Math.abs(en.x - pl.x) < (en.w + pl.w) * 0.42 &&
-            Math.abs(en.y - pl.y) < (en.h + pl.h) * 0.42) {
-          pl.alive = false;
-        }
+        var pl = players[pj]; if (!pl.alive) continue;
+        if (Math.abs(en.x - pl.x) < (en.w + pl.w) * 0.42 && Math.abs(en.y - pl.y) < (en.h + pl.h) * 0.42) pl.alive = false;
       }
     }
-
-    // Live scorebar
     document.getElementById('score').textContent = players[0].score;
     if (mode === 2) document.getElementById('best').textContent = players[1].score;
-
-    // End when everyone has crashed
     if (!players.some(function(p){ return p.alive; })) endGame();
   }
 
   function roundRect(x, y, w, h, r) {
     if (r > w/2) r = w/2; if (r > h/2) r = h/2;
-    ctx.beginPath();
-    ctx.moveTo(x+r, y);
-    ctx.arcTo(x+w, y, x+w, y+h, r);
-    ctx.arcTo(x+w, y+h, x, y+h, r);
-    ctx.arcTo(x, y+h, x, y, r);
-    ctx.arcTo(x, y, x+w, y, r);
-    ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath();
   }
 
-  // Top-down car: front points up (toward smaller y)
   function drawCar(x, y, color) {
     var w = 32, h = 52, left = x - w/2, top = y - h/2;
-    // wheels (poking out at the 4 corners)
     ctx.fillStyle = '#141414';
     roundRect(left-3, top+9, 6, 13, 2); ctx.fill();
     roundRect(left+w-3, top+9, 6, 13, 2); ctx.fill();
     roundRect(left-3, top+h-22, 6, 13, 2); ctx.fill();
     roundRect(left+w-3, top+h-22, 6, 13, 2); ctx.fill();
-    // body
-    ctx.fillStyle = color;
-    roundRect(left, top, w, h, 9); ctx.fill();
-    // roof panel (slightly darker)
-    ctx.fillStyle = 'rgba(0,0,0,0.16)';
-    roundRect(left+5, top+20, w-10, h-40, 5); ctx.fill();
-    // windshield (front) and rear window (glass)
-    ctx.fillStyle = 'rgba(190,235,255,0.9)';
-    roundRect(left+5, top+9, w-10, 11, 3); ctx.fill();
-    ctx.fillStyle = 'rgba(190,235,255,0.55)';
-    roundRect(left+5, top+h-20, w-10, 10, 3); ctx.fill();
-    // headlights (front)
+    ctx.fillStyle = color; roundRect(left, top, w, h, 9); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.16)'; roundRect(left+5, top+20, w-10, h-40, 5); ctx.fill();
+    ctx.fillStyle = 'rgba(190,235,255,0.9)'; roundRect(left+5, top+9, w-10, 11, 3); ctx.fill();
+    ctx.fillStyle = 'rgba(190,235,255,0.55)'; roundRect(left+5, top+h-20, w-10, 10, 3); ctx.fill();
     ctx.fillStyle = '#FFF3B0';
     ctx.beginPath(); ctx.arc(left+6, top+3, 2, 0, 7); ctx.fill();
     ctx.beginPath(); ctx.arc(left+w-6, top+3, 2, 0, 7); ctx.fill();
-    // taillights (rear)
     ctx.fillStyle = '#FF4136';
     ctx.beginPath(); ctx.arc(left+6, top+h-3, 2, 0, 7); ctx.fill();
     ctx.beginPath(); ctx.arc(left+w-6, top+h-3, 2, 0, 7); ctx.fill();
   }
 
-  // Top-down motorcycle: front points up
   function drawBike(x, y, c) {
     var h = 48;
-    // front + rear wheels along the centerline
     ctx.fillStyle = '#141414';
     roundRect(x-4, y-h/2, 8, 15, 3); ctx.fill();
     roundRect(x-4, y+h/2-15, 8, 15, 3); ctx.fill();
-    // frame / body
-    ctx.fillStyle = c.frame;
-    roundRect(x-5, y-12, 10, 26, 4); ctx.fill();
-    // handlebars near the front
-    ctx.fillStyle = '#333';
-    roundRect(x-10, y-10, 20, 4, 2); ctx.fill();
-    // rider: jacket then helmet (top view)
-    ctx.fillStyle = c.jacket;
-    roundRect(x-6, y-5, 12, 17, 5); ctx.fill();
-    ctx.fillStyle = c.helmet;
-    ctx.beginPath(); ctx.arc(x, y-1, 5, 0, 7); ctx.fill();
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath(); ctx.arc(x, y-2.5, 4.5, Math.PI, 2*Math.PI); ctx.fill(); // visor
+    ctx.fillStyle = c.frame; roundRect(x-5, y-12, 10, 26, 4); ctx.fill();
+    ctx.fillStyle = '#333'; roundRect(x-10, y-10, 20, 4, 2); ctx.fill();
+    ctx.fillStyle = c.jacket; roundRect(x-6, y-5, 12, 17, 5); ctx.fill();
+    ctx.fillStyle = c.helmet; ctx.beginPath(); ctx.arc(x, y-1, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.arc(x, y-2.5, 4.5, Math.PI, 2*Math.PI); ctx.fill();
   }
 
   function draw() {
-    // Grass background
-    ctx.fillStyle = '#3a7d44';
-    ctx.fillRect(0, 0, W, H);
-
-    // Road
-    ctx.fillStyle = '#3a3a44';
-    ctx.fillRect(ROAD_LEFT, 0, ROAD_WIDTH, H);
-
-    // Road edges
+    ctx.fillStyle = '#3a7d44'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#3a3a44'; ctx.fillRect(ROAD_LEFT, 0, ROAD_WIDTH, H);
     ctx.fillStyle = '#FFD93D';
-    ctx.fillRect(ROAD_LEFT - 5, 0, 5, H);
-    ctx.fillRect(ROAD_RIGHT, 0, 5, H);
-
-    // Lane dashes
+    ctx.fillRect(ROAD_LEFT - 5, 0, 5, H); ctx.fillRect(ROAD_RIGHT, 0, 5, H);
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     for (var l = 1; l < LANES; l++) {
       var lx = ROAD_LEFT + LANE_W * l - 3;
-      for (var dy = -60 + dashOffset; dy < H; dy += 60) {
-        ctx.fillRect(lx, dy, 6, 34);
-      }
+      for (var dy = -60 + dashOffset; dy < H; dy += 60) ctx.fillRect(lx, dy, 6, 34);
     }
-
-    // Enemies
-    for (var i = 0; i < enemies.length; i++) {
-      drawCar(enemies[i].x, enemies[i].y, enemies[i].color);
-    }
-
-    // Players (still-alive bikes)
-    for (var pi = 0; pi < players.length; pi++) {
-      if (players[pi].alive) drawBike(players[pi].x, players[pi].y, players[pi].colors);
-    }
+    for (var i = 0; i < enemies.length; i++) drawCar(enemies[i].x, enemies[i].y, enemies[i].color);
+    for (var pi = 0; pi < players.length; pi++) { if (players[pi].alive) drawBike(players[pi].x, players[pi].y, players[pi].colors); }
   }
 
-  // Show a bike on the start screen
+  // === LEADERBOARD ===
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fetchLeaderboard() {
+    document.getElementById('lb-list').innerHTML = '<div class="lb-loading">Loading…</div>';
+    fetch('/api/leaderboard?game=' + GAME_KEY)
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .catch(function() {
+        document.getElementById('lb-list').innerHTML = '<div class="lb-empty">Could not load.</div>';
+      });
+  }
+
+  function renderLeaderboard(entries) {
+    var list = document.getElementById('lb-list');
+    if (!entries.length) {
+      list.innerHTML = '<div class="lb-empty">No scores yet!<br>Be the first 🎮</div>';
+      return;
+    }
+    list.innerHTML = entries.map(function(e, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+      return '<div class="lb-row">' +
+        '<span class="lb-rank">' + medal + '</span>' +
+        '<span class="lb-name">' + esc(e.name) + '</span>' +
+        '<span class="lb-score">' + e.score + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function checkLeaderboard(finalScore) {
+    if (finalScore <= 0) { showStartBtn(); fetchLeaderboard(); return; }
+    fetch('/api/leaderboard?game=' + GAME_KEY)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var entries = d.entries || [];
+        renderLeaderboard(entries);
+        var qualifies = entries.length < 10 || finalScore > entries[entries.length - 1].score;
+        if (qualifies) { showNameEntry(finalScore); } else { showStartBtn(); }
+      })
+      .catch(function() { showStartBtn(); });
+  }
+
+  function showNameEntry(finalScore) {
+    var ne = document.getElementById('name-entry');
+    var inp = document.getElementById('nm-input');
+    ne.style.display = 'block';
+    inp.value = '';
+    setTimeout(function() { try { inp.focus(); } catch(ex) {} }, 100);
+
+    function doSubmit() {
+      var name = inp.value.trim() || 'Anonymous';
+      ne.style.display = 'none';
+      fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game: GAME_KEY, name: name, score: finalScore })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .catch(function() {})
+      .then(function() { showStartBtn(); });
+    }
+
+    document.getElementById('nm-submit').onclick = doSubmit;
+    document.getElementById('nm-skip').onclick = function() {
+      ne.style.display = 'none';
+      showStartBtn();
+      fetchLeaderboard();
+    };
+    inp.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); doSubmit(); } };
+  }
+
+  function showStartBtn() {
+    document.getElementById('startBtn').style.display = '';
+  }
+
+  fetchLeaderboard();
+
   players = [makePlayer(1, W / 2, P1_COLORS)];
   updateHint();
 
-  // ---- Main loop ----
   var lastTime = performance.now();
   function loop(now) {
     var dt = (now - lastTime) / 1000;
-    if (dt > 0.05) dt = 0.05; // clamp to avoid big jumps
+    if (dt > 0.05) dt = 0.05;
     lastTime = now;
     update(dt);
     draw();

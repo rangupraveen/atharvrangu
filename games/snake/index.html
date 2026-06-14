@@ -30,12 +30,10 @@
   .overlay.hidden { display: none; }
   .overlay h2 { font-family: 'Fredoka One', cursive; font-size: 34px; margin-bottom: 8px; color: var(--yellow); }
   .overlay p { font-size: 15px; font-weight: 700; margin-bottom: 6px; max-width: 280px; }
-  .overlay .big-score { font-family: 'Fredoka One', cursive; font-size: 40px; color: white; margin: 6px 0 14px; }
+  .overlay .big-score { font-family: 'Fredoka One', cursive; font-size: 40px; color: white; margin: 6px 0 10px; }
   .overlay .big-score.hidden { display: none; }
   .btn { background: var(--orange); color: white; border: 3px solid white; border-radius: 14px; padding: 12px 34px; font-family: 'Fredoka One', cursive; font-size: 20px; cursor: pointer; box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
   .btn:active { transform: translateY(2px); }
-
-  /* D-PAD */
   .dpad { margin-top: 16px; display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 64px); gap: 8px; }
   .dbtn { background: white; border: 4px solid var(--text); border-radius: 14px; box-shadow: 3px 3px 0 var(--text); font-size: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: none; }
   .dbtn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--text); }
@@ -44,39 +42,81 @@
   .dbtn.down { grid-column: 2; grid-row: 2; }
   .dbtn.right { grid-column: 3; grid-row: 2; }
   .hint { margin-top: 12px; font-size: 13px; font-weight: 700; color: #999; text-align: center; max-width: 420px; }
+
+  /* === LEADERBOARD LAYOUT === */
+  .game-wrapper { display: flex; gap: 20px; align-items: flex-start; justify-content: center; width: 100%; max-width: 660px; }
+  .game-col { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
+  .lb-panel { flex: 0 0 200px; background: white; border: 4px solid var(--text); border-radius: 16px; box-shadow: 6px 6px 0 var(--text); padding: 14px 12px; margin-top: 100px; }
+  .lb-panel-title { font-family: 'Fredoka One', cursive; font-size: 16px; text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 3px solid var(--text); }
+  .lb-row { display: flex; align-items: center; gap: 5px; padding: 5px 2px; border-bottom: 1px solid #f0f0f0; font-size: 12px; font-weight: 700; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { flex: 0 0 28px; font-family: 'Fredoka One', cursive; font-size: 13px; }
+  .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .lb-score { color: var(--orange); font-family: 'Fredoka One', cursive; font-size: 13px; }
+  .lb-empty, .lb-loading { color: #bbb; font-size: 12px; text-align: center; padding: 20px 4px; line-height: 1.6; }
+  /* Name entry inside overlay */
+  .name-entry { width: 100%; text-align: center; margin: 4px 0 8px; display: none; }
+  .name-entry .ne-label { font-size: 13px; color: var(--yellow); font-weight: 800; margin-bottom: 8px; }
+  .name-entry input { width: 190px; padding: 8px 12px; border-radius: 10px; border: 3px solid white; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; background: rgba(255,255,255,0.15); color: white; outline: none; text-align: center; display: block; margin: 0 auto 10px; }
+  .name-entry input::placeholder { color: rgba(255,255,255,0.5); }
+  .ne-btns { display: flex; gap: 8px; justify-content: center; }
+  .ne-btn { padding: 8px 20px !important; font-size: 15px !important; line-height: 1 !important; }
+  .ne-btn-skip { background: rgba(255,255,255,0.2) !important; }
+  @media (max-width: 680px) {
+    .game-wrapper { flex-direction: column; align-items: center; }
+    .lb-panel { flex: none; width: 100%; max-width: 420px; margin-top: 16px; }
+  }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <a href="/games/" class="back-link">&larr; Games</a>
-  <span class="title">Snake 🐍</span>
-</div>
-<div class="scorebar">
-  <div><span class="label">Score</span> <span class="val" id="score">0</span></div>
-  <div><span class="label">Best</span> <span class="val best" id="best">0</span></div>
-</div>
-<div class="stage">
-  <canvas id="game" width="400" height="400"></canvas>
-  <div class="overlay" id="overlay">
-    <h2 id="ov-title">Snake</h2>
-    <p id="ov-text">Eat the apples and grow as long as you can!</p>
-    <div class="big-score hidden" id="ov-score"></div>
-    <button class="btn" id="startBtn">Start</button>
+<div class="game-wrapper">
+  <div class="game-col">
+    <div class="topbar">
+      <a href="/games/" class="back-link">&larr; Games</a>
+      <span class="title">Snake 🐍</span>
+    </div>
+    <div class="scorebar">
+      <div><span class="label">Score</span> <span class="val" id="score">0</span></div>
+      <div><span class="label">Best</span> <span class="val best" id="best">0</span></div>
+    </div>
+    <div class="stage">
+      <canvas id="game" width="400" height="400"></canvas>
+      <div class="overlay" id="overlay">
+        <h2 id="ov-title">Snake</h2>
+        <p id="ov-text">Eat the apples and grow as long as you can!</p>
+        <div class="big-score hidden" id="ov-score"></div>
+        <div class="name-entry" id="name-entry">
+          <div class="ne-label">🏆 You made Top 10!</div>
+          <input type="text" id="nm-input" maxlength="20" placeholder="Your name" autocomplete="off">
+          <div class="ne-btns">
+            <button class="btn ne-btn" id="nm-submit">Save</button>
+            <button class="btn ne-btn ne-btn-skip" id="nm-skip">Skip</button>
+          </div>
+        </div>
+        <button class="btn" id="startBtn">Start</button>
+      </div>
+    </div>
+    <div class="dpad">
+      <div class="dbtn up" data-dir="up">▲</div>
+      <div class="dbtn left" data-dir="left">◀</div>
+      <div class="dbtn down" data-dir="down">▼</div>
+      <div class="dbtn right" data-dir="right">▶</div>
+    </div>
+    <p class="hint">Use the arrow buttons, arrow keys, W A S D, or swipe to turn.</p>
+  </div>
+
+  <div class="lb-panel">
+    <div class="lb-panel-title">🏆 Top 10</div>
+    <div id="lb-list"><div class="lb-loading">Loading…</div></div>
   </div>
 </div>
-<div class="dpad">
-  <div class="dbtn up" data-dir="up">▲</div>
-  <div class="dbtn left" data-dir="left">◀</div>
-  <div class="dbtn down" data-dir="down">▼</div>
-  <div class="dbtn right" data-dir="right">▶</div>
-</div>
-<p class="hint">Use the arrow buttons, arrow keys, W A S D, or swipe to turn.</p>
 
 <script>
 (function() {
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
   var COLS = 20, ROWS = 20, CELL = 20;
+  var GAME_KEY = 'snake';
 
   var snake, dir, nextDir, food, state = 'start', score = 0;
   var best = parseInt(localStorage.getItem('snakeHighScore') || '0', 10);
@@ -100,6 +140,8 @@
   }
 
   function startGame() {
+    document.getElementById('name-entry').style.display = 'none';
+    document.getElementById('startBtn').style.display = '';
     reset();
     state = 'playing';
     document.getElementById('overlay').classList.add('hidden');
@@ -117,13 +159,14 @@
     var os = document.getElementById('ov-score');
     os.textContent = 'Score: ' + score; os.classList.remove('hidden');
     document.getElementById('startBtn').textContent = 'Play Again';
+    document.getElementById('startBtn').style.display = 'none';
     document.getElementById('overlay').classList.remove('hidden');
+    checkLeaderboard(score);
   }
 
   function setDir(d) {
     var map = { up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0} };
     var nd = map[d]; if (!nd) return;
-    // disallow direct reverse
     if (nd.x === -dir.x && nd.y === -dir.y) return;
     nextDir = nd;
   }
@@ -131,9 +174,7 @@
   function step() {
     dir = nextDir;
     var head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
-    // wall collision
     if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) { gameOver(); return; }
-    // self collision
     if (snake.some(function(s){ return s.x===head.x && s.y===head.y; })) { gameOver(); return; }
     snake.unshift(head);
     if (head.x === food.x && head.y === food.y) {
@@ -159,16 +200,13 @@
   function draw() {
     ctx.fillStyle = '#2b2b3d';
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    // subtle grid
     ctx.strokeStyle = 'rgba(255,255,255,0.04)';
     for (var i=1;i<COLS;i++){ ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo(i*CELL,canvas.height); ctx.stroke(); }
     for (var j=1;j<ROWS;j++){ ctx.beginPath(); ctx.moveTo(0,j*CELL); ctx.lineTo(canvas.width,j*CELL); ctx.stroke(); }
-    // food
     if (food) {
       ctx.font = '18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('🍎', food.x*CELL+CELL/2, food.y*CELL+CELL/2+1);
     }
-    // snake
     if (snake) {
       for (var k=0;k<snake.length;k++){
         var s = snake[k];
@@ -176,7 +214,6 @@
         roundRect(s.x*CELL+1.5, s.y*CELL+1.5, CELL-3, CELL-3, 6);
         ctx.fill();
         if (k===0) {
-          // eyes
           ctx.fillStyle = 'white';
           var cx = s.x*CELL+CELL/2, cy = s.y*CELL+CELL/2;
           ctx.beginPath(); ctx.arc(cx - 3*dir.y - (dir.x!==0?0:3) + (dir.x?3:0), cy - 3*dir.x + (dir.y?3:0), 2, 0, 7); ctx.fill();
@@ -197,7 +234,6 @@
     requestAnimationFrame(loop);
   }
 
-  // Input: keyboard
   window.addEventListener('keydown', function(e){
     var k = e.key.toLowerCase();
     if (['arrowup','arrowdown','arrowleft','arrowright',' '].indexOf(e.key.toLowerCase())>=0 || k===' ') e.preventDefault();
@@ -208,14 +244,12 @@
     else if ((k===' '||k==='enter') && state!=='playing') startGame();
   });
 
-  // Input: d-pad buttons
   Array.prototype.forEach.call(document.querySelectorAll('.dbtn'), function(b){
     b.addEventListener('pointerdown', function(e){ e.preventDefault(); setDir(b.getAttribute('data-dir')); });
   });
 
-  // Input: swipe on canvas
   var sx=0, sy=0, swiping=false;
-  canvas.addEventListener('pointerdown', function(e){ swiping=true; var r=canvas.getBoundingClientRect(); sx=e.clientX; sy=e.clientY; });
+  canvas.addEventListener('pointerdown', function(e){ swiping=true; sx=e.clientX; sy=e.clientY; });
   canvas.addEventListener('pointerup', function(e){
     if (!swiping) return; swiping=false;
     var dx = e.clientX - sx, dy = e.clientY - sy;
@@ -226,6 +260,85 @@
 
   document.getElementById('startBtn').addEventListener('click', startGame);
 
+  // === LEADERBOARD ===
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fetchLeaderboard() {
+    document.getElementById('lb-list').innerHTML = '<div class="lb-loading">Loading…</div>';
+    fetch('/api/leaderboard?game=' + GAME_KEY)
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .catch(function() {
+        document.getElementById('lb-list').innerHTML = '<div class="lb-empty">Could not load.</div>';
+      });
+  }
+
+  function renderLeaderboard(entries) {
+    var list = document.getElementById('lb-list');
+    if (!entries.length) {
+      list.innerHTML = '<div class="lb-empty">No scores yet!<br>Be the first 🎮</div>';
+      return;
+    }
+    list.innerHTML = entries.map(function(e, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+      return '<div class="lb-row">' +
+        '<span class="lb-rank">' + medal + '</span>' +
+        '<span class="lb-name">' + esc(e.name) + '</span>' +
+        '<span class="lb-score">' + e.score + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function checkLeaderboard(finalScore) {
+    if (finalScore <= 0) { showStartBtn(); fetchLeaderboard(); return; }
+    fetch('/api/leaderboard?game=' + GAME_KEY)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var entries = d.entries || [];
+        renderLeaderboard(entries);
+        var qualifies = entries.length < 10 || finalScore > entries[entries.length - 1].score;
+        if (qualifies) { showNameEntry(finalScore); } else { showStartBtn(); }
+      })
+      .catch(function() { showStartBtn(); });
+  }
+
+  function showNameEntry(finalScore) {
+    var ne = document.getElementById('name-entry');
+    var inp = document.getElementById('nm-input');
+    ne.style.display = 'block';
+    inp.value = '';
+    setTimeout(function() { try { inp.focus(); } catch(ex) {} }, 100);
+
+    function doSubmit() {
+      var name = inp.value.trim() || 'Anonymous';
+      ne.style.display = 'none';
+      fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game: GAME_KEY, name: name, score: finalScore })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .catch(function() {})
+      .then(function() { showStartBtn(); });
+    }
+
+    document.getElementById('nm-submit').onclick = doSubmit;
+    document.getElementById('nm-skip').onclick = function() {
+      ne.style.display = 'none';
+      showStartBtn();
+      fetchLeaderboard();
+    };
+    inp.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); doSubmit(); } };
+  }
+
+  function showStartBtn() {
+    document.getElementById('startBtn').style.display = '';
+  }
+
+  fetchLeaderboard();
   reset();
   requestAnimationFrame(loop);
 })();

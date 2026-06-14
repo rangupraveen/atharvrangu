@@ -30,62 +30,95 @@
   .overlay.hidden { display: none; }
   .overlay h2 { font-family: 'Fredoka One', cursive; font-size: 32px; margin-bottom: 8px; color: var(--yellow); }
   .overlay p { font-size: 15px; font-weight: 700; margin-bottom: 6px; max-width: 260px; }
-  .overlay .big-score { font-family: 'Fredoka One', cursive; font-size: 36px; color: white; margin: 6px 0 14px; }
+  .overlay .big-score { font-family: 'Fredoka One', cursive; font-size: 36px; color: white; margin: 6px 0 10px; }
   .overlay .big-score.hidden { display: none; }
   .btn { background: var(--orange); color: white; border: 3px solid white; border-radius: 14px; padding: 12px 30px; font-family: 'Fredoka One', cursive; font-size: 20px; cursor: pointer; box-shadow: 3px 3px 0 rgba(0,0,0,0.4); }
   .btn:active { transform: translateY(2px); }
-
   .controls { width: 100%; max-width: 360px; margin-top: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .cbtn { background: white; border: 4px solid var(--text); border-radius: 14px; box-shadow: 3px 3px 0 var(--text); font-size: 24px; padding: 14px 0; text-align: center; cursor: pointer; touch-action: none; font-family: 'Fredoka One', cursive; }
   .cbtn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--text); }
   .hint { margin-top: 12px; font-size: 13px; font-weight: 700; color: #999; text-align: center; max-width: 360px; }
+
+  /* === LEADERBOARD LAYOUT === */
+  .game-wrapper { display: flex; gap: 20px; align-items: flex-start; justify-content: center; width: 100%; max-width: 610px; }
+  .game-col { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 360px; }
+  .lb-panel { flex: 0 0 200px; background: white; border: 4px solid var(--text); border-radius: 16px; box-shadow: 6px 6px 0 var(--text); padding: 14px 12px; margin-top: 100px; }
+  .lb-panel-title { font-family: 'Fredoka One', cursive; font-size: 16px; text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 3px solid var(--text); }
+  .lb-row { display: flex; align-items: center; gap: 5px; padding: 5px 2px; border-bottom: 1px solid #f0f0f0; font-size: 12px; font-weight: 700; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { flex: 0 0 28px; font-family: 'Fredoka One', cursive; font-size: 13px; }
+  .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .lb-score { color: var(--orange); font-family: 'Fredoka One', cursive; font-size: 13px; }
+  .lb-empty, .lb-loading { color: #bbb; font-size: 12px; text-align: center; padding: 20px 4px; line-height: 1.6; }
+  /* Name entry inside overlay */
+  .name-entry { width: 100%; text-align: center; margin: 4px 0 8px; display: none; }
+  .name-entry .ne-label { font-size: 13px; color: var(--yellow); font-weight: 800; margin-bottom: 8px; }
+  .name-entry input { width: 190px; padding: 8px 12px; border-radius: 10px; border: 3px solid white; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; background: rgba(255,255,255,0.15); color: white; outline: none; text-align: center; display: block; margin: 0 auto 10px; }
+  .name-entry input::placeholder { color: rgba(255,255,255,0.5); }
+  .ne-btns { display: flex; gap: 8px; justify-content: center; }
+  .ne-btn { padding: 8px 20px !important; font-size: 15px !important; line-height: 1 !important; }
+  .ne-btn-skip { background: rgba(255,255,255,0.2) !important; }
+  @media (max-width: 640px) {
+    .game-wrapper { flex-direction: column; align-items: center; }
+    .lb-panel { flex: none; width: 100%; max-width: 360px; margin-top: 16px; }
+  }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <a href="/games/" class="back-link">&larr; Games</a>
-  <span class="title">Block Drop 🧱</span>
-</div>
-<div class="scorebar">
-  <div><span class="label">Score</span> <span class="val" id="score">0</span></div>
-  <div><span class="label">Lines</span> <span class="val" id="lines">0</span></div>
-  <div><span class="label">Best</span> <span class="val best" id="best">0</span></div>
-</div>
-<div class="stage">
-  <canvas id="game" width="240" height="480"></canvas>
-  <div class="overlay" id="overlay">
-    <h2 id="ov-title">Block Drop</h2>
-    <p id="ov-text">Stack the blocks and clear full lines!</p>
-    <div class="big-score hidden" id="ov-score"></div>
-    <button class="btn" id="startBtn">Start</button>
+<div class="game-wrapper">
+  <div class="game-col">
+    <div class="topbar">
+      <a href="/games/" class="back-link">&larr; Games</a>
+      <span class="title">Block Drop 🧱</span>
+    </div>
+    <div class="scorebar">
+      <div><span class="label">Score</span> <span class="val" id="score">0</span></div>
+      <div><span class="label">Lines</span> <span class="val" id="lines">0</span></div>
+      <div><span class="label">Best</span> <span class="val best" id="best">0</span></div>
+    </div>
+    <div class="stage">
+      <canvas id="game" width="240" height="480"></canvas>
+      <div class="overlay" id="overlay">
+        <h2 id="ov-title">Block Drop</h2>
+        <p id="ov-text">Stack the blocks and clear full lines!</p>
+        <div class="big-score hidden" id="ov-score"></div>
+        <div class="name-entry" id="name-entry">
+          <div class="ne-label">🏆 You made Top 10!</div>
+          <input type="text" id="nm-input" maxlength="20" placeholder="Your name" autocomplete="off">
+          <div class="ne-btns">
+            <button class="btn ne-btn" id="nm-submit">Save</button>
+            <button class="btn ne-btn ne-btn-skip" id="nm-skip">Skip</button>
+          </div>
+        </div>
+        <button class="btn" id="startBtn">Start</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="cbtn" id="leftBtn">◀</div>
+      <div class="cbtn" id="rotateBtn">⟳</div>
+      <div class="cbtn" id="downBtn">▼</div>
+      <div class="cbtn" id="rightBtn">▶</div>
+    </div>
+    <p class="hint">← → move · ↑ or ⟳ rotate · ↓ soft drop · Space hard drop. Use the buttons on mobile!</p>
+  </div>
+
+  <div class="lb-panel">
+    <div class="lb-panel-title">🏆 Top 10</div>
+    <div id="lb-list"><div class="lb-loading">Loading…</div></div>
   </div>
 </div>
-<div class="controls">
-  <div class="cbtn" id="leftBtn">◀</div>
-  <div class="cbtn" id="rotateBtn">⟳</div>
-  <div class="cbtn" id="downBtn">▼</div>
-  <div class="cbtn" id="rightBtn">▶</div>
-</div>
-<p class="hint">← → move · ↑ or ⟳ rotate · ↓ soft drop · Space hard drop. Use the buttons on mobile!</p>
 
 <script>
 (function() {
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
   var COLS = 10, ROWS = 20, CELL = 24;
+  var GAME_KEY = 'blockdrop';
 
-  var COLORS = {
-    I: '#4CC9F0', O: '#FFD93D', T: '#7B5EA7', S: '#06D6A0',
-    Z: '#EF233C', J: '#FF6B35', L: '#FF6B9D'
-  };
+  var COLORS = { I:'#4CC9F0', O:'#FFD93D', T:'#7B5EA7', S:'#06D6A0', Z:'#EF233C', J:'#FF6B35', L:'#FF6B9D' };
   var SHAPES = {
-    I: [[0,1],[1,1],[2,1],[3,1]],
-    O: [[0,0],[1,0],[0,1],[1,1]],
-    T: [[0,1],[1,1],[2,1],[1,0]],
-    S: [[1,0],[2,0],[0,1],[1,1]],
-    Z: [[0,0],[1,0],[1,1],[2,1]],
-    J: [[0,0],[0,1],[1,1],[2,1]],
-    L: [[2,0],[0,1],[1,1],[2,1]]
+    I:[[0,1],[1,1],[2,1],[3,1]], O:[[0,0],[1,0],[0,1],[1,1]], T:[[0,1],[1,1],[2,1],[1,0]],
+    S:[[1,0],[2,0],[0,1],[1,1]], Z:[[0,0],[1,0],[1,1],[2,1]], J:[[0,0],[0,1],[1,1],[2,1]], L:[[2,0],[0,1],[1,1],[2,1]]
   };
   var TYPES = ['I','O','T','S','Z','J','L'];
 
@@ -96,18 +129,17 @@
 
   function emptyGrid() {
     var g = [];
-    for (var y=0;y<ROWS;y++){ g.push(new Array(COLS).fill(null)); }
+    for (var y=0;y<ROWS;y++) g.push(new Array(COLS).fill(null));
     return g;
   }
 
   function newPiece() {
     var t = TYPES[Math.floor(Math.random()*TYPES.length)];
-    var cells = SHAPES[t].map(function(c){ return {x:c[0], y:c[1]}; });
-    return { type: t, cells: cells, ox: 3, oy: 0 };
+    return { type: t, cells: SHAPES[t].map(function(c){ return {x:c[0],y:c[1]}; }), ox: 3, oy: 0 };
   }
 
   function cellsAbs(p) {
-    return p.cells.map(function(c){ return {x: c.x + p.ox, y: c.y + p.oy}; });
+    return p.cells.map(function(c){ return {x: c.x+p.ox, y: c.y+p.oy}; });
   }
 
   function collides(p) {
@@ -120,15 +152,10 @@
 
   function rotate(p) {
     if (p.type === 'O') return p;
-    // rotate cells around pivot (1,1) clockwise: (x,y)->(maxY - y, x) using bounding approach
-    var rotated = p.cells.map(function(c){ return {x: -(c.y-1)+1, y: (c.x-1)+1}; });
-    var test = { type:p.type, cells: rotated, ox:p.ox, oy:p.oy };
-    // wall kicks: try offsets
+    var rotated = p.cells.map(function(c){ return {x:-(c.y-1)+1, y:(c.x-1)+1}; });
+    var test = { type:p.type, cells:rotated, ox:p.ox, oy:p.oy };
     var kicks = [0,-1,1,-2,2];
-    for (var i=0;i<kicks.length;i++){
-      test.ox = p.ox + kicks[i];
-      if (!collides(test)) { return test; }
-    }
+    for (var i=0;i<kicks.length;i++) { test.ox = p.ox + kicks[i]; if (!collides(test)) return test; }
     return p;
   }
 
@@ -136,22 +163,19 @@
     cellsAbs(piece).forEach(function(c){ if (c.y>=0) grid[c.y][c.x] = COLORS[piece.type]; });
     clearLines();
     piece = newPiece();
-    if (collides(piece)) { gameOver(); }
+    if (collides(piece)) gameOver();
   }
 
   function clearLines() {
     var cleared = 0;
-    for (var y=ROWS-1;y>=0;y--){
+    for (var y=ROWS-1;y>=0;y--) {
       if (grid[y].every(function(c){ return c; })) {
-        grid.splice(y,1);
-        grid.unshift(new Array(COLS).fill(null));
-        cleared++; y++;
+        grid.splice(y,1); grid.unshift(new Array(COLS).fill(null)); cleared++; y++;
       }
     }
     if (cleared > 0) {
       lines += cleared;
-      var pts = [0,40,100,300,1200][cleared] * level;
-      score += pts;
+      score += [0,40,100,300,1200][cleared] * level;
       level = 1 + Math.floor(lines/10);
       dropMs = Math.max(120, 700 - (level-1)*60);
       document.getElementById('score').textContent = score;
@@ -161,15 +185,13 @@
 
   function softDrop() {
     var test = { type:piece.type, cells:piece.cells, ox:piece.ox, oy:piece.oy+1 };
-    if (collides(test)) { lockPiece(); }
-    else { piece.oy++; }
+    if (collides(test)) lockPiece(); else piece.oy++;
   }
 
   function hardDrop() {
     while (true) {
       var test = { type:piece.type, cells:piece.cells, ox:piece.ox, oy:piece.oy+1 };
-      if (collides(test)) break;
-      piece.oy++;
+      if (collides(test)) break; piece.oy++;
     }
     lockPiece();
   }
@@ -180,10 +202,10 @@
   }
 
   function startGame() {
-    grid = emptyGrid();
-    score = 0; lines = 0; level = 1; dropMs = 700; acc = 0;
-    piece = newPiece();
-    state = 'playing';
+    document.getElementById('name-entry').style.display = 'none';
+    document.getElementById('startBtn').style.display = '';
+    grid = emptyGrid(); score = 0; lines = 0; level = 1; dropMs = 700; acc = 0;
+    piece = newPiece(); state = 'playing';
     document.getElementById('score').textContent = '0';
     document.getElementById('lines').textContent = '0';
     document.getElementById('overlay').classList.add('hidden');
@@ -201,38 +223,30 @@
     var os = document.getElementById('ov-score');
     os.textContent = 'Score: ' + score; os.classList.remove('hidden');
     document.getElementById('startBtn').textContent = 'Play Again';
+    document.getElementById('startBtn').style.display = 'none';
     document.getElementById('overlay').classList.remove('hidden');
+    checkLeaderboard(score);
   }
 
   function drawCell(x, y, color) {
     var px = x*CELL, py = y*CELL;
-    ctx.fillStyle = color;
-    ctx.fillRect(px+1, py+1, CELL-2, CELL-2);
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(px+1, py+1, CELL-2, 4);
+    ctx.fillStyle = color; ctx.fillRect(px+1, py+1, CELL-2, CELL-2);
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(px+1, py+1, CELL-2, 4);
   }
 
   function draw() {
-    ctx.fillStyle = '#20202e';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#20202e'; ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.strokeStyle = 'rgba(255,255,255,0.05)';
     for (var i=1;i<COLS;i++){ ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo(i*CELL,canvas.height); ctx.stroke(); }
     for (var j=1;j<ROWS;j++){ ctx.beginPath(); ctx.moveTo(0,j*CELL); ctx.lineTo(canvas.width,j*CELL); ctx.stroke(); }
-    if (grid) {
-      for (var y=0;y<ROWS;y++) for (var x=0;x<COLS;x++){ if (grid[y][x]) drawCell(x,y,grid[y][x]); }
-    }
-    if (piece && state==='playing') {
-      cellsAbs(piece).forEach(function(c){ if (c.y>=0) drawCell(c.x,c.y,COLORS[piece.type]); });
-    }
+    if (grid) for (var y=0;y<ROWS;y++) for (var x=0;x<COLS;x++) if (grid[y][x]) drawCell(x,y,grid[y][x]);
+    if (piece && state==='playing') cellsAbs(piece).forEach(function(c){ if (c.y>=0) drawCell(c.x,c.y,COLORS[piece.type]); });
   }
 
   function loop(now) {
     var dt = now - lastTime; lastTime = now;
     if (dt > 200) dt = 200;
-    if (state === 'playing') {
-      acc += dt;
-      while (acc >= dropMs) { softDrop(); acc -= dropMs; }
-    }
+    if (state === 'playing') { acc += dt; while (acc >= dropMs) { softDrop(); acc -= dropMs; } }
     draw();
     requestAnimationFrame(loop);
   }
@@ -255,9 +269,87 @@
   bindTap('rightBtn', function(){ move(1); });
   bindTap('downBtn', function(){ softDrop(); });
   bindTap('rotateBtn', function(){ piece = rotate(piece); });
-
   document.getElementById('startBtn').addEventListener('click', startGame);
 
+  // === LEADERBOARD ===
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fetchLeaderboard() {
+    document.getElementById('lb-list').innerHTML = '<div class="lb-loading">Loading…</div>';
+    fetch('/api/leaderboard?game=' + GAME_KEY)
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .catch(function() {
+        document.getElementById('lb-list').innerHTML = '<div class="lb-empty">Could not load.</div>';
+      });
+  }
+
+  function renderLeaderboard(entries) {
+    var list = document.getElementById('lb-list');
+    if (!entries.length) {
+      list.innerHTML = '<div class="lb-empty">No scores yet!<br>Be the first 🎮</div>';
+      return;
+    }
+    list.innerHTML = entries.map(function(e, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+      return '<div class="lb-row">' +
+        '<span class="lb-rank">' + medal + '</span>' +
+        '<span class="lb-name">' + esc(e.name) + '</span>' +
+        '<span class="lb-score">' + e.score + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function checkLeaderboard(finalScore) {
+    if (finalScore <= 0) { showStartBtn(); fetchLeaderboard(); return; }
+    fetch('/api/leaderboard?game=' + GAME_KEY)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var entries = d.entries || [];
+        renderLeaderboard(entries);
+        var qualifies = entries.length < 10 || finalScore > entries[entries.length - 1].score;
+        if (qualifies) { showNameEntry(finalScore); } else { showStartBtn(); }
+      })
+      .catch(function() { showStartBtn(); });
+  }
+
+  function showNameEntry(finalScore) {
+    var ne = document.getElementById('name-entry');
+    var inp = document.getElementById('nm-input');
+    ne.style.display = 'block';
+    inp.value = '';
+    setTimeout(function() { try { inp.focus(); } catch(ex) {} }, 100);
+
+    function doSubmit() {
+      var name = inp.value.trim() || 'Anonymous';
+      ne.style.display = 'none';
+      fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game: GAME_KEY, name: name, score: finalScore })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderLeaderboard(d.entries || []); })
+      .catch(function() {})
+      .then(function() { showStartBtn(); });
+    }
+
+    document.getElementById('nm-submit').onclick = doSubmit;
+    document.getElementById('nm-skip').onclick = function() {
+      ne.style.display = 'none';
+      showStartBtn();
+      fetchLeaderboard();
+    };
+    inp.onkeydown = function(e) { if (e.key === 'Enter') { e.preventDefault(); doSubmit(); } };
+  }
+
+  function showStartBtn() {
+    document.getElementById('startBtn').style.display = '';
+  }
+
+  fetchLeaderboard();
   grid = emptyGrid();
   requestAnimationFrame(loop);
 })();
