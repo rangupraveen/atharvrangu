@@ -399,6 +399,7 @@
   .s5 .series-header { background: #EDE0FF; }
   .s6 .series-header { background: #D4EDDA; }
   .s7 .series-header { background: #FFE0CC; }
+  .s8 .series-header { background: #E0F0E5; }
 
   /* BACK LINK */
   .back-link {
@@ -842,6 +843,29 @@
   </table>
 </div>
 
+<!-- SERIES 8: Diary of a Roblox Pro -->
+<div class="series-block s8">
+  <div class="series-header">
+    <span class="series-emoji">🎮</span>
+    <span class="series-title">Diary of a Roblox Pro</span>
+    <span class="series-count">13 Books</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Status</th>
+      </tr>
+    </thead>
+    <tbody id="s8-body">
+    </tbody>
+  </table>
+</div>
+
 <div class="footer">
   <span class="trophy">🏆</span>
   Keep reading, Atharv — every book makes you smarter &amp; stronger!
@@ -954,6 +978,21 @@ const series = {
     { title: "The Scarlet Shedder", note: "Book 12", pages: 240 },
     { title: "Big Jim Begins", note: "Book 13", pages: 240 },
     { title: "Big Jim Believes", note: "Book 14", pages: 223 },
+  ],
+  s8: [
+    { title: "Monster Escape", note: "Book 1", pages: 120 },
+    { title: "Dragon Pet", note: "Book 2", pages: 120 },
+    { title: "Obby Challenge", note: "Book 3", pages: 120 },
+    { title: "Lava Chase", note: "Book 4", pages: 120 },
+    { title: "Zombie Invasion", note: "Book 5", pages: 120 },
+    { title: "Mega Shark", note: "Book 6", pages: 120 },
+    { title: "Cash Splash", note: "Book 7", pages: 120 },
+    { title: "Survive the Island", note: "Book 8", pages: 120 },
+    { title: "Haunted House", note: "Book 9", pages: 120 },
+    { title: "Soccer Simulator", note: "Book 10", pages: 120 },
+    { title: "Rat Attack", note: "Book 11", pages: 120 },
+    { title: "Robot Battle", note: "Book 12", pages: 120 },
+    { title: "Alien Mission", note: "Book 13", pages: 120 },
   ],
 };
 
@@ -1163,6 +1202,7 @@ buildTable('s4', series.s4);
 buildTable('s5', series.s5);
 buildTable('s6', series.s6);
 buildTable('s7', series.s7);
+buildTable('s8', series.s8);
 
 // Attach rating change listeners
 document.querySelectorAll('.star-rating input[type="radio"]').forEach(function(radio) {
