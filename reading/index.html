@@ -201,6 +201,74 @@
     content: ' 🎉';
   }
 
+  /* TABLE OF CONTENTS GRID */
+  .toc-heading {
+    max-width: 900px;
+    margin: 0 auto 12px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    color: #666;
+    text-align: center;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .toc-grid {
+    max-width: 900px;
+    margin: 0 auto 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .toc-card {
+    border: 3px solid var(--text);
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 4px 4px 0 var(--text);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .toc-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--text); }
+  .toc-card:active { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--text); }
+  .toc-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 2.5px solid var(--text);
+  }
+  .toc-emoji { font-size: 20px; }
+  .toc-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+  .toc-card-body { padding: 10px 12px 12px; }
+  .toc-bar-wrap {
+    background: #e8e8e8;
+    border: 2px solid var(--text);
+    border-radius: 12px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .toc-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--blue));
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .toc-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .toc-stat { display: inline-flex; align-items: center; gap: 3px; }
+  .toc-stat.toc-total { margin-left: auto; color: #888; }
+  @media print { .toc-grid, .toc-heading { display: none; } }
+
   /* SERIES SECTIONS */
   .series-block {
     margin-bottom: 36px;
@@ -682,8 +750,11 @@
 
 <button class="print-btn" onclick="window.print()">Print This Checklist</button>
 
+<p class="toc-heading">Jump to a Series</p>
+<div class="toc-grid" id="toc-grid"></div>
+
 <!-- SERIES 1: Diary of a Wimpy Kid -->
-<div class="series-block s1">
+<div class="series-block s1" id="sec-s1">
   <div class="series-header">
     <span class="series-emoji">😅</span>
     <span class="series-title">Diary of a Wimpy Kid</span>
@@ -706,7 +777,7 @@
 </div>
 
 <!-- SERIES 2: Magic Tree House -->
-<div class="series-block s2">
+<div class="series-block s2" id="sec-s2">
   <div class="series-header">
     <span class="series-emoji">🌳</span>
     <span class="series-title">Magic Tree House</span>
@@ -729,7 +800,7 @@
 </div>
 
 <!-- SERIES 3: Captain Underpants -->
-<div class="series-block s3">
+<div class="series-block s3" id="sec-s3">
   <div class="series-header">
     <span class="series-emoji">🩲</span>
     <span class="series-title">Captain Underpants</span>
@@ -752,7 +823,7 @@
 </div>
 
 <!-- SERIES 4: Big Nate -->
-<div class="series-block s4">
+<div class="series-block s4" id="sec-s4">
   <div class="series-header">
     <span class="series-emoji">😎</span>
     <span class="series-title">Big Nate</span>
@@ -775,7 +846,7 @@
 </div>
 
 <!-- SERIES 5: Boxcar Children -->
-<div class="series-block s5">
+<div class="series-block s5" id="sec-s5">
   <div class="series-header">
     <span class="series-emoji">🚂</span>
     <span class="series-title">The Boxcar Children</span>
@@ -798,7 +869,7 @@
 </div>
 
 <!-- SERIES 6: Minecraft Stonesword Saga -->
-<div class="series-block s6">
+<div class="series-block s6" id="sec-s6">
   <div class="series-header">
     <span class="series-emoji">⛏️</span>
     <span class="series-title">Minecraft: Stonesword Saga</span>
@@ -821,7 +892,7 @@
 </div>
 
 <!-- SERIES 7: Dog Man -->
-<div class="series-block s7">
+<div class="series-block s7" id="sec-s7">
   <div class="series-header">
     <span class="series-emoji">🐶</span>
     <span class="series-title">Dog Man</span>
@@ -844,7 +915,7 @@
 </div>
 
 <!-- SERIES 8: Diary of a Roblox Pro -->
-<div class="series-block s8">
+<div class="series-block s8" id="sec-s8">
   <div class="series-header">
     <span class="series-emoji">🎮</span>
     <span class="series-title">Diary of a Roblox Pro</span>
@@ -1165,6 +1236,7 @@ function recountBooks() {
   completedBooks = document.querySelectorAll('.s-finished:checked').length;
   updateProgress();
   updateFilterCounts();
+  updateTocCounts();
 }
 
 function updateProgress() {
@@ -1203,6 +1275,62 @@ buildTable('s5', series.s5);
 buildTable('s6', series.s6);
 buildTable('s7', series.s7);
 buildTable('s8', series.s8);
+
+function scrollToSeries(sectionId) {
+  var el = document.getElementById(sectionId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildTocGrid() {
+  var grid = document.getElementById('toc-grid');
+  if (!grid) return;
+  Object.keys(series).forEach(function(key) {
+    var block = document.getElementById('sec-' + key);
+    var header = block && block.querySelector('.series-header');
+    if (!header) return;
+    var emoji = header.querySelector('.series-emoji').textContent;
+    var title = header.querySelector('.series-title').textContent;
+    var bg = getComputedStyle(header).backgroundColor;
+    var total = series[key].length;
+    var card = document.createElement('div');
+    card.className = 'toc-card';
+    card.onclick = function() { scrollToSeries('sec-' + key); };
+    card.innerHTML =
+      '<div class="toc-card-top" style="background:' + bg + ';">' +
+        '<span class="toc-emoji">' + emoji + '</span>' +
+        '<span class="toc-title">' + title + '</span>' +
+      '</div>' +
+      '<div class="toc-card-body">' +
+        '<div class="toc-bar-wrap"><div class="toc-bar-fill" id="toc-bar-' + key + '"></div></div>' +
+        '<div class="toc-stats">' +
+          '<span class="toc-stat toc-finished" title="Finished">✅ <b id="toc-fin-' + key + '">0</b></span>' +
+          '<span class="toc-stat toc-reading" title="Reading">📖 <b id="toc-read-' + key + '">0</b></span>' +
+          '<span class="toc-stat toc-unread" title="Unread">📘 <b id="toc-unread-' + key + '">0</b></span>' +
+          '<span class="toc-stat toc-total" title="Total">Σ <b id="toc-total-' + key + '">' + total + '</b></span>' +
+        '</div>' +
+      '</div>';
+    grid.appendChild(card);
+  });
+}
+
+function updateTocCounts() {
+  Object.keys(series).forEach(function(key) {
+    var finished = document.querySelectorAll('#sec-' + key + ' .s-finished:checked').length;
+    var reading = document.querySelectorAll('#sec-' + key + ' .s-reading:checked').length;
+    var total = series[key].length;
+    var unread = total - finished - reading;
+    var finEl = document.getElementById('toc-fin-' + key);
+    var readEl = document.getElementById('toc-read-' + key);
+    var unreadEl = document.getElementById('toc-unread-' + key);
+    var barEl = document.getElementById('toc-bar-' + key);
+    if (finEl) finEl.textContent = finished;
+    if (readEl) readEl.textContent = reading;
+    if (unreadEl) unreadEl.textContent = unread;
+    if (barEl) barEl.style.width = (total > 0 ? Math.round((finished / total) * 100) : 0) + '%';
+  });
+}
+
+buildTocGrid();
 
 // Attach rating change listeners
 document.querySelectorAll('.star-rating input[type="radio"]').forEach(function(radio) {
