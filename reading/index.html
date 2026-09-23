@@ -468,6 +468,7 @@
   .s6 .series-header { background: #D4EDDA; }
   .s7 .series-header { background: #FFE0CC; }
   .s8 .series-header { background: #E0F0E5; }
+  .s9 .series-header { background: #FFE8D6; }
 
   /* BACK LINK */
   .back-link {
@@ -937,6 +938,29 @@
   </table>
 </div>
 
+<!-- SERIES 9: Cat Kid Comic Club -->
+<div class="series-block s9" id="sec-s9">
+  <div class="series-header">
+    <span class="series-emoji">🐱</span>
+    <span class="series-title">Cat Kid Comic Club</span>
+    <span class="series-count">5 Books</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Book Title</th>
+        <th class="center">Pages</th>
+        <th>Date Finished</th>
+        <th>My Rating</th>
+        <th class="center">Status</th>
+      </tr>
+    </thead>
+    <tbody id="s9-body">
+    </tbody>
+  </table>
+</div>
+
 <div class="footer">
   <span class="trophy">🏆</span>
   Keep reading, Atharv — every book makes you smarter &amp; stronger!
@@ -1064,6 +1088,13 @@ const series = {
     { title: "Rat Attack", note: "Book 11", pages: 120 },
     { title: "Robot Battle", note: "Book 12", pages: 120 },
     { title: "Alien Mission", note: "Book 13", pages: 120 },
+  ],
+  s9: [
+    { title: "Cat Kid Comic Club", note: "Book 1", pages: 224 },
+    { title: "Perspectives", note: "Book 2", pages: 224 },
+    { title: "On Purpose", note: "Book 3", pages: 224 },
+    { title: "Collaborations", note: "Book 4", pages: 224 },
+    { title: "Influencers", note: "Book 5", pages: 224 },
   ],
 };
 
@@ -1275,6 +1306,7 @@ buildTable('s5', series.s5);
 buildTable('s6', series.s6);
 buildTable('s7', series.s7);
 buildTable('s8', series.s8);
+buildTable('s9', series.s9);
 
 function scrollToSeries(sectionId) {
   var el = document.getElementById(sectionId);
