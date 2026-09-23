@@ -733,10 +733,10 @@
 </div>
 
 <div class="reward" id="reward">
-  <div class="reward-icon" id="reward-icon">🎁</div>
+  <div class="reward-icon" id="reward-icon">🏏</div>
   <div class="reward-body">
-    <div class="reward-title" id="reward-title">Mystery Box Reward</div>
-    <div class="reward-sub">Finish 25 books to unlock!</div>
+    <div class="reward-title" id="reward-title">Cricket Bat</div>
+    <div class="reward-sub" id="reward-sub">Finish 25 books to unlock!</div>
     <div class="reward-bar-wrap"><div class="reward-bar-fill" id="reward-fill"></div></div>
     <div class="reward-count" id="reward-count">0 / 25 finished</div>
   </div>
@@ -1162,7 +1162,12 @@ function saveLocal(idx, entry) {
 
 var READ_PIN = '1107';
 
-var REWARD_GOAL = 25;
+var REWARD_TIERS = [
+  { goal: 25, name: 'Cricket Bat', icon: '🏏', hidden: false },
+  { goal: 50, name: 'Mystery Reward', icon: '🎁', hidden: true },
+  { goal: 75, name: 'Mystery Reward', icon: '🎁', hidden: true },
+  { goal: 100, name: 'Mystery Reward', icon: '🎁', hidden: true },
+];
 
 function getStatus(idx) {
   var checked = document.querySelector('input[name="st-' + idx + '"]:checked');
@@ -1277,24 +1282,45 @@ function updateProgress() {
   var label = completedBooks === 0 ? 'Start reading!' : completedBooks < 10 ? 'Great start!' : completedBooks < 25 ? 'On a roll!' : completedBooks < 45 ? 'Amazing progress!' : 'Reading Champion!';
   document.getElementById('stars-display').textContent = completedBooks + ' book' + (completedBooks !== 1 ? 's' : '') + ' completed — ' + label;
 
-  // Reward bar
+  // Reward tiers
   var rewardEl = document.getElementById('reward');
   var fill = document.getElementById('reward-fill');
   var count = document.getElementById('reward-count');
   var icon = document.getElementById('reward-icon');
   var title = document.getElementById('reward-title');
-  var capped = Math.min(completedBooks, REWARD_GOAL);
-  var rPct = Math.round((capped / REWARD_GOAL) * 100);
-  if (fill) fill.style.width = rPct + '%';
-  if (count) count.textContent = capped + ' / ' + REWARD_GOAL + ' finished';
-  if (completedBooks >= REWARD_GOAL) {
+  var sub = document.getElementById('reward-sub');
+
+  var tierIdx = 0;
+  for (var t = 0; t < REWARD_TIERS.length; t++) {
+    tierIdx = t;
+    if (completedBooks <= REWARD_TIERS[t].goal) break;
+  }
+  var tier = REWARD_TIERS[tierIdx];
+  var reached = completedBooks >= tier.goal;
+  var isLast = tierIdx === REWARD_TIERS.length - 1;
+
+  if (isLast && reached) {
     rewardEl.classList.add('unlocked');
     if (icon) icon.textContent = '🎉';
-    if (title) title.textContent = 'Mystery Box Unlocked!';
+    if (title) title.textContent = 'All Rewards Unlocked!';
+    if (sub) sub.textContent = 'You collected all 4 rewards!';
+    if (fill) fill.style.width = '100%';
+    if (count) count.textContent = tier.goal + ' / ' + tier.goal + ' finished';
+  } else if (reached) {
+    rewardEl.classList.add('unlocked');
+    if (icon) icon.textContent = '🎉';
+    if (title) title.textContent = (tier.hidden ? 'Mystery Reward' : tier.name) + ' Unlocked!';
+    if (sub) sub.textContent = 'Next up: finish ' + REWARD_TIERS[tierIdx + 1].goal + ' books!';
+    if (fill) fill.style.width = '100%';
+    if (count) count.textContent = tier.goal + ' / ' + tier.goal + ' finished';
   } else {
     rewardEl.classList.remove('unlocked');
-    if (icon) icon.textContent = '🎁';
-    if (title) title.textContent = 'Mystery Box Reward';
+    if (icon) icon.textContent = tier.hidden ? '🎁' : tier.icon;
+    if (title) title.textContent = tier.hidden ? 'Mystery Reward' : tier.name;
+    if (sub) sub.textContent = 'Finish ' + tier.goal + ' books to unlock!';
+    var rPct = Math.round((completedBooks / tier.goal) * 100);
+    if (fill) fill.style.width = rPct + '%';
+    if (count) count.textContent = completedBooks + ' / ' + tier.goal + ' finished';
   }
 }
 
